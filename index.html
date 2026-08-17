@@ -48,11 +48,7 @@
       --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -78,11 +74,7 @@
       z-index: 100;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .brand { display: flex; align-items: center; gap: 10px; }
 
     .brand-icon {
       width: 34px;
@@ -98,24 +90,10 @@
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     }
 
-    .brand-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--text-primary);
-    }
+    .brand-title { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text-primary); }
+    .brand-subtitle { font-size: 0.72rem; color: var(--text-secondary); font-weight: 400; }
 
-    .brand-subtitle {
-      font-size: 0.72rem;
-      color: var(--text-secondary);
-      font-weight: 400;
-    }
-
-    .header-center-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .header-center-controls { display: flex; align-items: center; gap: 8px; }
 
     /* 2D / 3D Mode Toggle */
     .view-mode-toggle {
@@ -149,11 +127,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
 
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .header-actions { display: flex; align-items: center; gap: 6px; }
 
     .header-chip {
       background: var(--bg-elevated);
@@ -171,16 +145,8 @@
       white-space: nowrap;
     }
 
-    .header-chip:hover {
-      background: #30363d;
-      color: var(--text-primary);
-      border-color: var(--accent-sky);
-    }
-
-    .header-chip.accent {
-      border-color: rgba(56, 189, 248, 0.4);
-      color: var(--accent-sky);
-    }
+    .header-chip:hover { background: #30363d; color: var(--text-primary); border-color: var(--accent-sky); }
+    .header-chip.accent { border-color: rgba(56, 189, 248, 0.4); color: var(--accent-sky); }
 
     /* Main Container */
     .app-layout {
@@ -192,11 +158,7 @@
     }
 
     @media (max-width: 1100px) {
-      .app-layout {
-        grid-template-columns: 1fr;
-        height: auto;
-        overflow-y: auto;
-      }
+      .app-layout { grid-template-columns: 1fr; height: auto; overflow-y: auto; }
     }
 
     /* Sidebar */
@@ -252,12 +214,7 @@
       gap: 10px;
     }
 
-    .panel-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
+    .panel-header { display: flex; align-items: center; justify-content: space-between; }
     .panel-title {
       font-size: 0.78rem;
       font-weight: 700;
@@ -268,30 +225,12 @@
       align-items: center;
       gap: 7px;
     }
-
-    .panel-title svg {
-      width: 14px;
-      height: 14px;
-      stroke: var(--accent-sky);
-    }
+    .panel-title svg { width: 14px; height: 14px; stroke: var(--accent-sky); }
 
     /* Inputs */
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .input-label {
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-    }
-
-    .search-row {
-      display: flex;
-      gap: 6px;
-    }
+    .input-group { display: flex; flex-direction: column; gap: 4px; }
+    .input-label { font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); }
+    .search-row { display: flex; gap: 6px; }
 
     .text-input, .select-input {
       background-color: var(--bg-elevated);
@@ -327,10 +266,7 @@
       transition: all 0.15s ease;
       white-space: nowrap;
     }
-
-    .primary-btn:hover {
-      background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
-    }
+    .primary-btn:hover { background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); }
 
     .secondary-btn {
       background: var(--bg-elevated);
@@ -347,11 +283,7 @@
       gap: 5px;
       transition: all 0.15s ease;
     }
-
-    .secondary-btn:hover {
-      background: #30363d;
-      border-color: var(--text-secondary);
-    }
+    .secondary-btn:hover { background: #30363d; border-color: var(--text-secondary); }
 
     .danger-btn {
       background: rgba(244, 63, 94, 0.15);
@@ -366,10 +298,7 @@
       align-items: center;
       gap: 4px;
     }
-
-    .danger-btn:hover {
-      background: rgba(244, 63, 94, 0.3);
-    }
+    .danger-btn:hover { background: rgba(244, 63, 94, 0.3); }
 
     /* Segmented Controls */
     .segmented-control {
@@ -394,11 +323,7 @@
       transition: all 0.15s ease;
       text-align: center;
     }
-
-    .segment-btn:hover {
-      color: var(--text-primary);
-    }
-
+    .segment-btn:hover { color: var(--text-primary); }
     .segment-btn.active {
       background-color: var(--accent-sky);
       color: #0c1017;
@@ -410,33 +335,26 @@
     .switch {
       position: relative;
       display: inline-block;
-      width: 32px;
-      height: 17px;
+      width: 34px;
+      height: 18px;
     }
 
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
+    .switch input { opacity: 0; width: 0; height: 0; }
 
     .slider {
       position: absolute;
       cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       background-color: #30363d;
       transition: .2s;
-      border-radius: 17px;
+      border-radius: 18px;
     }
 
     .slider:before {
       position: absolute;
       content: "";
-      height: 11px;
-      width: 11px;
+      height: 12px;
+      width: 12px;
       left: 3px;
       bottom: 3px;
       background-color: white;
@@ -444,42 +362,14 @@
       border-radius: 50%;
     }
 
-    input:checked + .slider {
-      background-color: var(--accent-emerald);
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(15px);
-    }
+    input:checked + .slider { background-color: var(--accent-emerald); }
+    input:checked + .slider:before { transform: translateX(16px); }
 
     /* Sliders */
-    .slider-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .slider-label {
-      font-size: 0.66rem;
-      color: var(--text-muted);
-      width: 50px;
-      font-weight: 500;
-    }
-
-    .range-input {
-      flex: 1;
-      accent-color: var(--accent-sky);
-      cursor: pointer;
-      height: 4px;
-    }
-
-    .slider-value-readout {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--text-secondary);
-      width: 34px;
-      text-align: right;
-    }
+    .slider-row { display: flex; align-items: center; gap: 8px; }
+    .slider-label { font-size: 0.66rem; color: var(--text-muted); width: 65px; font-weight: 500; }
+    .range-input { flex: 1; accent-color: var(--accent-sky); cursor: pointer; height: 4px; }
+    .slider-value-readout { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-secondary); width: 34px; text-align: right; }
 
     /* Advisory Validation Banner */
     .validation-card {
@@ -492,29 +382,9 @@
       gap: 6px;
     }
 
-    .validation-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .validation-title {
-      font-size: 0.76rem;
-      font-weight: 700;
-      color: var(--accent-indigo);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .validation-issue-list {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      max-height: 180px;
-      overflow-y: auto;
-    }
-
+    .validation-header { display: flex; align-items: center; justify-content: space-between; }
+    .validation-title { font-size: 0.76rem; font-weight: 700; color: var(--accent-indigo); display: flex; align-items: center; gap: 6px; }
+    .validation-issue-list { display: flex; flex-direction: column; gap: 5px; max-height: 180px; overflow-y: auto; }
     .validation-issue-item {
       font-size: 0.72rem;
       padding: 4px 6px;
@@ -525,21 +395,9 @@
       gap: 6px;
       line-height: 1.35;
     }
-
-    .validation-issue-item.warn {
-      border-left: 3px solid var(--accent-amber);
-      color: #fef3c7;
-    }
-
-    .validation-issue-item.error {
-      border-left: 3px solid var(--accent-rose);
-      color: #ffe4e6;
-    }
-
-    .validation-issue-item.ok {
-      border-left: 3px solid var(--accent-emerald);
-      color: #d1fae5;
-    }
+    .validation-issue-item.warn { border-left: 3px solid var(--accent-amber); color: #fef3c7; }
+    .validation-issue-item.error { border-left: 3px solid var(--accent-rose); color: #ffe4e6; }
+    .validation-issue-item.ok { border-left: 3px solid var(--accent-emerald); color: #d1fae5; }
 
     /* Water Source / Well Advisory Banner */
     .yield-warning-banner {
@@ -555,15 +413,19 @@
       line-height: 1.35;
     }
 
-    /* Feature Items List */
-    .features-list {
+    /* Property Stats Card */
+    .property-stats-card {
+      background: rgba(250, 204, 21, 0.08);
+      border: 1px solid rgba(250, 204, 21, 0.25);
+      border-radius: var(--radius-md);
+      padding: 8px 10px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
-      max-height: 220px;
-      overflow-y: auto;
+      gap: 4px;
     }
 
+    /* Feature Items List */
+    .features-list { display: flex; flex-direction: column; gap: 5px; max-height: 220px; overflow-y: auto; }
     .feature-item-row {
       background: var(--bg-elevated);
       border: 1px solid var(--border-subtle);
@@ -575,36 +437,11 @@
       cursor: pointer;
       transition: all 0.15s ease;
     }
-
-    .feature-item-row:hover {
-      border-color: var(--accent-sky);
-      background: #2d333b;
-    }
-
-    .feature-item-row.selected {
-      border-color: var(--accent-sky);
-      background: rgba(56, 189, 248, 0.15);
-    }
-
-    .feature-item-left {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 0.76rem;
-      font-weight: 600;
-    }
-
-    .feature-color-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-    }
-
-    .feature-item-meta {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.68rem;
-      color: var(--text-secondary);
-    }
+    .feature-item-row:hover { border-color: var(--accent-sky); background: #2d333b; }
+    .feature-item-row.selected { border-color: var(--accent-sky); background: rgba(56, 189, 248, 0.15); }
+    .feature-item-left { display: flex; align-items: center; gap: 7px; font-size: 0.76rem; font-weight: 600; }
+    .feature-color-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .feature-item-meta { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--text-secondary); }
 
     /* Derived Stats Box */
     .derived-stats-box {
@@ -616,26 +453,9 @@
       grid-template-columns: repeat(2, 1fr);
       gap: 6px;
     }
-
-    .derived-stat-item {
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-    }
-
-    .derived-stat-label {
-      font-size: 0.62rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      font-weight: 600;
-    }
-
-    .derived-stat-val {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--text-primary);
-    }
+    .derived-stat-item { display: flex; flex-direction: column; gap: 1px; }
+    .derived-stat-label { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+    .derived-stat-val { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; font-weight: 700; color: var(--text-primary); }
 
     .pressure-spread-pill {
       grid-column: span 2;
@@ -650,23 +470,8 @@
     }
 
     /* Map Viewport Area */
-    .viewport-container {
-      position: relative;
-      background-color: #080c10;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .map-wrapper {
-      flex: 1;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px;
-      overflow: hidden;
-    }
+    .viewport-container { position: relative; background-color: #080c10; display: flex; flex-direction: column; overflow: hidden; }
+    .map-wrapper { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; padding: 12px; overflow: hidden; }
 
     .map-stage {
       position: relative;
@@ -681,78 +486,21 @@
       user-select: none;
       touch-action: none;
     }
-
-    .map-stage.cursor-pan {
-      cursor: grab;
-    }
-    .map-stage.cursor-pan.is-dragging {
-      cursor: grabbing !important;
-    }
-    .map-stage.cursor-crosshair {
-      cursor: crosshair;
-    }
+    .map-stage.cursor-pan { cursor: grab; }
+    .map-stage.cursor-pan.is-dragging { cursor: grabbing !important; }
+    .map-stage.cursor-crosshair { cursor: crosshair; }
 
     /* Map Layers Container */
-    .map-layers-container {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      will-change: transform;
+    .map-layers-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; will-change: transform; }
+
+    #imagery-canvas, #hillshade-canvas, #color-ramp-canvas {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     }
 
-    #imagery-canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    #hillshade-canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      mix-blend-mode: multiply;
-      opacity: 0.40;
-      transition: opacity 0.2s ease;
-    }
-
-    #color-ramp-canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      mix-blend-mode: multiply;
-      opacity: 0.55;
-      display: none;
-      transition: opacity 0.2s ease;
-    }
-
-    #parcels-svg, #site-model-svg, #contour-svg, #draw-svg, #interaction-svg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
-
-    #three-viewport {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: none;
-      z-index: 10;
-      outline: none;
-    }
+    #hillshade-canvas { mix-blend-mode: multiply; opacity: 0.40; transition: opacity 0.2s ease; }
+    #color-ramp-canvas { pointer-events: none; mix-blend-mode: multiply; opacity: 0.55; display: none; transition: opacity 0.2s ease; }
+    #parcels-svg, #site-model-svg, #contour-svg, #draw-svg, #interaction-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+    #three-viewport { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 10; outline: none; }
 
     /* Interactive Floating Drawing Toolbar */
     .drawing-toolbar-overlay {
@@ -786,12 +534,7 @@
       gap: 5px;
       transition: all 0.15s ease;
     }
-
-    .tool-btn:hover {
-      color: var(--text-primary);
-      background: rgba(255,255,255,0.08);
-    }
-
+    .tool-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.08); }
     .tool-btn.active {
       background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
       color: white;
@@ -799,12 +542,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
 
-    .toolbar-divider {
-      width: 1px;
-      height: 18px;
-      background: var(--border-subtle);
-      margin: 0 2px;
-    }
+    .toolbar-divider { width: 1px; height: 18px; background: var(--border-subtle); margin: 0 2px; }
 
     /* Live Cursor Tooltip */
     .draw-live-pill {
@@ -837,38 +575,11 @@
       pointer-events: auto;
     }
 
-    .top-left-card {
-      top: 16px;
-      left: 16px;
-      max-width: 280px;
-    }
+    .top-left-card { top: 16px; left: 16px; max-width: 280px; }
+    .top-right-compass { top: 16px; right: 16px; padding: 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; }
+    .compass-needle { width: 28px; height: 28px; transition: transform 0.1s linear; }
 
-    .top-right-compass {
-      top: 16px;
-      right: 16px;
-      padding: 6px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      cursor: pointer;
-    }
-
-    .compass-needle {
-      width: 28px;
-      height: 28px;
-      transition: transform 0.1s linear;
-    }
-
-    .map-nav-controls {
-      top: 68px;
-      right: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      padding: 4px;
-    }
-
+    .map-nav-controls { top: 68px; right: 16px; display: flex; flex-direction: column; gap: 4px; padding: 4px; }
     .nav-btn {
       background: var(--bg-elevated);
       color: var(--text-primary);
@@ -882,34 +593,11 @@
       cursor: pointer;
       transition: all 0.15s ease;
     }
+    .nav-btn:hover { background: #30363d; border-color: var(--accent-sky); color: var(--accent-sky); }
 
-    .nav-btn:hover {
-      background: #30363d;
-      border-color: var(--accent-sky);
-      color: var(--accent-sky);
-    }
-
-    .scale-bar-container {
-      bottom: 16px;
-      left: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .scale-bar-graphic {
-      height: 4px;
-      border: 1px solid #ffffff;
-      border-top: none;
-      background: linear-gradient(90deg, #ffffff 50%, #000000 50%);
-    }
-
-    .scale-bar-text {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.65rem;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
+    .scale-bar-container { bottom: 16px; left: 16px; display: flex; flex-direction: column; gap: 2px; }
+    .scale-bar-graphic { height: 4px; border: 1px solid #ffffff; border-top: none; background: linear-gradient(90deg, #ffffff 50%, #000000 50%); }
+    .scale-bar-text { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 600; color: var(--text-primary); }
 
     .bottom-center-inspector {
       bottom: 16px;
@@ -924,27 +612,14 @@
 
     /* Modal Drawer for Heads Database */
     .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(12, 16, 23, 0.75);
       backdrop-filter: blur(8px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
-      opacity: 0;
-      pointer-events: none;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; opacity: 0; pointer-events: none;
       transition: opacity 0.2s ease;
     }
-
-    .modal-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
     .modal-dialog {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
@@ -956,118 +631,29 @@
       box-shadow: var(--shadow-lg);
       overflow: hidden;
     }
-
-    .modal-header {
-      padding: 12px 18px;
-      border-bottom: 1px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .modal-body {
-      padding: 14px 18px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+    .modal-header { padding: 12px 18px; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; }
+    .modal-body { padding: 14px 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
 
     /* Heads Table */
-    .heads-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.76rem;
-    }
-
-    .heads-table th, .heads-table td {
-      padding: 7px 10px;
-      text-align: left;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-
-    .heads-table th {
-      color: var(--text-muted);
-      text-transform: uppercase;
-      font-size: 0.65rem;
-      font-weight: 600;
-      background: var(--bg-card);
-    }
-
-    .heads-table tr:hover td {
-      background: rgba(255,255,255,0.03);
-    }
+    .heads-table { width: 100%; border-collapse: collapse; font-size: 0.76rem; }
+    .heads-table th, .heads-table td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border-subtle); }
+    .heads-table th { color: var(--text-muted); text-transform: uppercase; font-size: 0.65rem; font-weight: 600; background: var(--bg-card); }
+    .heads-table tr:hover td { background: rgba(255,255,255,0.03); }
 
     /* SVG Style Classes for Authoring */
-    .area-poly-turf {
-      fill: rgba(16, 185, 129, 0.28);
-      stroke: #10b981;
-      stroke-width: 2.2;
-    }
-    .area-poly-beds {
-      fill: rgba(245, 158, 11, 0.28);
-      stroke: #f59e0b;
-      stroke-width: 2.2;
-    }
-    .area-poly-garden {
-      fill: rgba(56, 189, 248, 0.28);
-      stroke: #38bdf8;
-      stroke-width: 2.2;
-    }
-    .area-poly-orchard {
-      fill: rgba(168, 85, 247, 0.28);
-      stroke: #a855f7;
-      stroke-width: 2.2;
-    }
-    .area-poly-none {
-      fill: rgba(148, 163, 184, 0.2);
-      stroke: #94a3b8;
-      stroke-width: 2.0;
-    }
+    .area-poly-turf { fill: rgba(16, 185, 129, 0.28); stroke: #10b981; stroke-width: 2.2; }
+    .area-poly-beds { fill: rgba(245, 158, 11, 0.28); stroke: #f59e0b; stroke-width: 2.2; }
+    .area-poly-garden { fill: rgba(56, 189, 248, 0.28); stroke: #38bdf8; stroke-width: 2.2; }
+    .area-poly-orchard { fill: rgba(168, 85, 247, 0.28); stroke: #a855f7; stroke-width: 2.2; }
+    .area-poly-none { fill: rgba(148, 163, 184, 0.2); stroke: #94a3b8; stroke-width: 2.0; }
 
-    .exclusion-buffer-halo {
-      fill: rgba(244, 63, 94, 0.16);
-      stroke: #f43f5e;
-      stroke-width: 1.2;
-      stroke-dasharray: 4 3;
-    }
+    .exclusion-buffer-halo { fill: rgba(244, 63, 94, 0.16); stroke: #f43f5e; stroke-width: 1.2; stroke-dasharray: 4 3; }
+    .exclusion-poly { fill: rgba(244, 63, 94, 0.35); stroke: #f43f5e; stroke-width: 2.0; }
+    .exclusion-line { fill: none; stroke: #f43f5e; stroke-width: 3.0; stroke-dasharray: 6 3; }
 
-    .exclusion-poly {
-      fill: rgba(244, 63, 94, 0.35);
-      stroke: #f43f5e;
-      stroke-width: 2.0;
-    }
-
-    .exclusion-line {
-      fill: none;
-      stroke: #f43f5e;
-      stroke-width: 3.0;
-      stroke-dasharray: 6 3;
-    }
-
-    .vertex-handle {
-      fill: #ffffff;
-      stroke: #0284c7;
-      stroke-width: 2;
-      cursor: grab;
-      pointer-events: auto;
-    }
-
-    .vertex-midpoint-handle {
-      fill: rgba(56, 189, 248, 0.8);
-      stroke: #ffffff;
-      stroke-width: 1.5;
-      cursor: pointer;
-      pointer-events: auto;
-    }
-
-    .snap-indicator {
-      fill: none;
-      stroke: #facc15;
-      stroke-width: 2;
-      stroke-dasharray: 3 3;
-      pointer-events: none;
-    }
+    .vertex-handle { fill: #ffffff; stroke: #0284c7; stroke-width: 2; cursor: grab; pointer-events: auto; }
+    .vertex-midpoint-handle { fill: rgba(56, 189, 248, 0.8); stroke: #ffffff; stroke-width: 1.5; cursor: pointer; pointer-events: auto; }
+    .snap-indicator { fill: none; stroke: #facc15; stroke-width: 2; stroke-dasharray: 3 3; pointer-events: none; }
 
     .contour-path-index { fill: none; stroke: #1c1917; stroke-width: 1.8; stroke-opacity: 0.95; }
     .contour-path-inter { fill: none; stroke: #44403c; stroke-width: 0.9; stroke-opacity: 0.70; }
@@ -1167,6 +753,30 @@
               <button type="button" class="segment-btn" data-radius="400">400m</button>
             </div>
           </div>
+
+          <!-- Lock to Parcel Toggle (Prominent) -->
+          <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(250, 204, 21, 0.08); border: 1px solid rgba(250, 204, 21, 0.25); border-radius: var(--radius-sm); padding: 6px 10px; margin-top: 2px;">
+            <label for="toggle-parcel-clip" style="font-size: 0.74rem; font-weight: 600; color: #fef08a; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <span>🏡 Lock Stats, Contours &amp; 3D to Parcel</span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" id="toggle-parcel-clip">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Parcel Topographic Metrics Box -->
+          <div class="property-stats-card" id="parcel-stats-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.68rem; font-weight: 700; color: #facc15; text-transform: uppercase;">Property Parcel Topo</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 700; color: var(--text-primary);" id="parcel-stat-acres">— ac</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; font-size: 0.66rem; font-family: 'JetBrains Mono', monospace; color: var(--text-secondary);">
+              <div>Min: <span id="parcel-stat-min" style="color: var(--text-primary);">—</span></div>
+              <div>Max: <span id="parcel-stat-max" style="color: var(--text-primary);">—</span></div>
+              <div>Relief: <span id="parcel-stat-relief" style="color: var(--accent-sky);">—</span></div>
+            </div>
+          </div>
         </div>
 
         <!-- Selected Feature Inspector -->
@@ -1180,7 +790,7 @@
           </div>
 
           <div id="inspector-empty-state" style="font-size: 0.72rem; color: var(--text-muted); text-align: center; padding: 12px 6px;">
-            No feature selected. Select or draw an Area or Exclusion zone on the map.
+            No feature selected. Click "Area" or "Exclusion" above to draw on the lawn.
           </div>
 
           <!-- Area Fields Form -->
@@ -1500,16 +1110,6 @@
             <input type="range" id="slider-opacity-parcels" class="range-input" min="0" max="100" value="100">
             <span class="slider-value-readout" id="val-opacity-parcels">100%</span>
           </div>
-
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px;">
-            <label style="font-size: 0.74rem; font-weight: 600; color: #fef08a; display: flex; align-items: center; gap: 5px;">
-              <span>Limit 3D &amp; DEM to Parcel</span>
-            </label>
-            <label class="switch">
-              <input type="checkbox" id="toggle-parcel-clip">
-              <span class="slider"></span>
-            </label>
-          </div>
         </div>
 
       </div>
@@ -1736,17 +1336,17 @@
       radiusMeters: 100,
       contourIntervalFt: 1,
       viewMode: "2d",
-      activeTool: "pan", // "pan"|"draw-polygon"|"draw-rectangle"|"draw-exclusion-poly"|"draw-line"|"edit-vertices"
+      activeTool: "pan",
       selectedFeatureId: null,
-      selectedFeatureType: null, // "area"|"exclusion"|"water_source"|"controller"
+      selectedFeatureType: null,
       
       // Drawing runtime state
-      drawingPoints: [], // [[px, py], ...]
-      drawingGeoPoints: [], // [[lon, lat], ...]
+      drawingPoints: [],
+      drawingGeoPoints: [],
       isDrawing: false,
       editVertexIndex: -1,
       isDraggingVertex: false,
-      snapTarget: null, // { px, py, lon, lat }
+      snapTarget: null,
       
       // History undo/redo stack
       undoStack: [],
@@ -1831,6 +1431,13 @@
       loadingOverlay: document.getElementById('loading-overlay'),
       loadingText: document.getElementById('loading-text'),
       
+      // Parcel Stats & Lock Toggle
+      toggleParcelClip: document.getElementById('toggle-parcel-clip'),
+      parcelStatAcres: document.getElementById('parcel-stat-acres'),
+      parcelStatMin: document.getElementById('parcel-stat-min'),
+      parcelStatMax: document.getElementById('parcel-stat-max'),
+      parcelStatRelief: document.getElementById('parcel-stat-relief'),
+      
       // Inspector Elements
       inspectorTitle: document.getElementById('inspector-title'),
       btnDeleteFeature: document.getElementById('btn-delete-feature'),
@@ -1886,8 +1493,7 @@
       sliderOpacityContours: document.getElementById('slider-opacity-contours'),
       valOpacityContours: document.getElementById('val-opacity-contours'),
       sliderOpacityParcels: document.getElementById('slider-opacity-parcels'),
-      valOpacityParcels: document.getElementById('val-opacity-parcels'),
-      toggleParcelClip: document.getElementById('toggle-parcel-clip')
+      valOpacityParcels: document.getElementById('val-opacity-parcels')
     };
 
     // Math & Coordinates
@@ -1986,7 +1592,7 @@
             const elev = rawFeet[py * width + px];
             if (isFinite(elev)) {
               if (elev < minFt) minFt = elev;
-              if (elev > maxFt) maxElev: maxFt = elev;
+              if (elev > maxFt) maxFt = elev;
               sumFt += elev;
               count++;
 
@@ -2078,13 +1684,28 @@
       return { acres: Math.max(0, acres), sqft: Math.max(0, sqft) };
     }
 
+    function updateParcelStatsDisplay() {
+      if (!appState.highlightedParcel || !appState.dataset) {
+        elements.parcelStatAcres.textContent = "— ac";
+        elements.parcelStatMin.textContent = "—";
+        elements.parcelStatMax.textContent = "—";
+        elements.parcelStatRelief.textContent = "—";
+        return;
+      }
+
+      const stats = computePolygonDerivedStats(appState.highlightedParcel.geometry, appState.dataset);
+      elements.parcelStatAcres.textContent = `${stats.areaAcres.toFixed(2)} ac (${stats.areaSqFt.toLocaleString()} sq ft)`;
+      elements.parcelStatMin.textContent = `${stats.minFt}'`;
+      elements.parcelStatMax.textContent = `${stats.maxFt}'`;
+      elements.parcelStatRelief.textContent = `${stats.reliefFt}' (${stats.psiSpread} psi)`;
+    }
+
     // Snapping Engine
     function findSnapTarget(px, py, tolerancePx = 14) {
       if (!appState.dataset) return null;
       let closest = null;
       let minD = tolerancePx;
 
-      // 1. Snap to parcel vertices & edges
       if (appState.parcelsGeoJSON) {
         for (const feat of appState.parcelsGeoJSON.features) {
           const poly = feat.geometry.type === 'Polygon' ? feat.geometry.coordinates : feat.geometry.coordinates[0];
@@ -2101,7 +1722,6 @@
         }
       }
 
-      // 2. Snap to existing authored area vertices
       for (const area of siteModel.areas) {
         if (!area.geometry?.coordinates) continue;
         for (const [lon, lat] of area.geometry.coordinates[0]) {
@@ -2165,7 +1785,6 @@
     function validateSiteModel() {
       const issues = [];
 
-      // 1. Water Source checks
       if (!siteModel.water_source.location) {
         issues.push({ type: "warn", msg: "Water source location pin is unset on the property." });
       }
@@ -2176,19 +1795,16 @@
         elements.bannerWellYieldUnknown.style.display = "none";
       }
 
-      // 2. Controller check
       if (!siteModel.controller.location && siteModel.areas.length > 0) {
         issues.push({ type: "warn", msg: "Controller location pin has not been placed." });
       }
 
-      // 3. Area Relief & Zoning checks
       for (const area of siteModel.areas) {
         if (area.relief_ft > 20) {
           issues.push({ type: "warn", msg: `Zone "${area.name}" has ${area.relief_ft} ft relief (${(area.relief_ft * 0.433).toFixed(1)} psi delta) — will likely need pressure regulation or dedicated sub-zones.` });
         }
       }
 
-      // 4. Overlap & Parcel Boundary checks
       if (appState.highlightedParcel) {
         for (const area of siteModel.areas) {
           const ring = area.geometry.coordinates[0];
@@ -2206,7 +1822,6 @@
         issues.push({ type: "ok", msg: "All site model geometries and infrastructure checks passed." });
       }
 
-      // Render issues
       const container = elements.validationIssueContainer;
       container.innerHTML = '';
       issues.forEach(iss => {
@@ -2220,7 +1835,6 @@
       elements.validationBadgeCount.textContent = warnCount > 0 ? `${warnCount} Advisory` : "0 Issues";
     }
 
-    // Recalculate derived DEM stats for all areas
     function recalculateAllDerivedStats() {
       if (!appState.dataset) return;
       for (const area of siteModel.areas) {
@@ -2234,6 +1848,123 @@
       }
     }
 
+    // 2D Hillshade Renderer
+    function renderHillshade(dataset) {
+      if (!dataset) return;
+      const ctx = elements.hillshadeCanvas.getContext('2d');
+      const { width, height, rawMeters, dxGroundMeters } = dataset;
+      const imgData = ctx.createImageData(width, height);
+      const data = imgData.data;
+
+      const altRad = (45 * Math.PI) / 180;
+      const azRad = (315 * Math.PI) / 180;
+      const sinAlt = Math.sin(altRad);
+      const cosAlt = Math.cos(altRad);
+      const zFactor = 2.0;
+
+      for (let y = 0; y < height; y++) {
+        const r_prev = Math.max(0, y - 1);
+        const r_next = Math.min(height - 1, y + 1);
+        for (let x = 0; x < width; x++) {
+          const c_prev = Math.max(0, x - 1);
+          const c_next = Math.min(width - 1, x + 1);
+
+          const z_a = rawMeters[r_prev * width + c_prev];
+          const z_b = rawMeters[r_prev * width + x];
+          const z_c = rawMeters[r_prev * width + c_next];
+          const z_d = rawMeters[y * width + c_prev];
+          const z_f = rawMeters[y * width + c_next];
+          const z_g = rawMeters[r_next * width + c_prev];
+          const z_h = rawMeters[r_next * width + x];
+          const z_i = rawMeters[r_next * width + c_next];
+
+          const dz_dx = ((z_c + 2 * z_f + z_i) - (z_a + 2 * z_d + z_g)) / (8 * dxGroundMeters);
+          const dz_dy = ((z_g + 2 * z_h + z_i) - (z_a + 2 * z_b + z_c)) / (8 * dxGroundMeters);
+
+          const slope = Math.atan(zFactor * Math.sqrt(dz_dx * dz_dx + dz_dy * dz_dy));
+          let aspect = Math.atan2(dz_dy, -dz_dx);
+          if (aspect < 0) aspect = 2 * Math.PI + aspect;
+
+          let shade = sinAlt * Math.cos(slope) + cosAlt * Math.sin(slope) * Math.cos(azRad - aspect);
+          shade = Math.max(0, Math.min(1, shade));
+          const gray = Math.round(shade * 255);
+
+          const idx = (y * width + x) * 4;
+          data[idx] = gray;
+          data[idx + 1] = gray;
+          data[idx + 2] = gray;
+          data[idx + 3] = 255;
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+    }
+
+    // 2D Contour Renderer
+    function renderContours(dataset) {
+      const svg = elements.contourSvg;
+      svg.innerHTML = '';
+      if (!dataset || !isFinite(dataset.minFeet) || !isFinite(dataset.maxFeet)) return;
+
+      // Optional clip-path to parcel
+      let clipId = "";
+      if (appState.clipToParcel && appState.highlightedParcel) {
+        clipId = "parcel-clip-path";
+        let defs = svg.querySelector('defs');
+        if (!defs) {
+          defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+          svg.appendChild(defs);
+        }
+        const clipPath = document.createElementNS("http://www.w3.org/2000/svg", "clipPath");
+        clipPath.setAttribute("id", clipId);
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", geojsonToSvgPath(appState.highlightedParcel.geometry, dataset));
+        clipPath.appendChild(path);
+        defs.appendChild(clipPath);
+      }
+
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      if (clipId) g.setAttribute("clip-path", `url(#${clipId})`);
+
+      const step = appState.contourIntervalFt;
+      const indexStep = step === 1 ? 5 : (step === 2 ? 10 : 25);
+      const thresholds = d3.range(Math.floor(dataset.minFeet), Math.ceil(dataset.maxFeet) + step, step);
+
+      const contourGen = d3.contours().size([dataset.width, dataset.height]).smooth(true);
+      const contours = contourGen.thresholds(thresholds)(dataset.rawFeet);
+      const pathGen = d3.geoPath();
+
+      contours.forEach(c => {
+        const val = Math.round(c.value);
+        const isIndex = (val % indexStep === 0);
+        const d = pathGen(c);
+        if (!d) return;
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", d);
+        path.setAttribute("class", isIndex ? "contour-path-index" : "contour-path-inter");
+        g.appendChild(path);
+
+        if (isIndex && c.coordinates.length > 0) {
+          const poly = c.coordinates[0];
+          if (poly && poly.length > 0) {
+            const ring = poly[0];
+            if (ring.length > 8) {
+              const pt = ring[Math.floor(ring.length / 2)];
+              const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+              text.setAttribute("x", pt[0]);
+              text.setAttribute("y", pt[1]);
+              text.setAttribute("class", "contour-label");
+              text.textContent = `${val}'`;
+              g.appendChild(text);
+            }
+          }
+        }
+      });
+
+      svg.appendChild(g);
+    }
+
     // Render Site Model in 2D SVG
     function renderSiteModel() {
       const svg = elements.siteModelSvg;
@@ -2242,12 +1973,11 @@
 
       const dataset = appState.dataset;
 
-      // 1. Render Exclusions (Buffer Halos + Inner Polygons/Lines)
+      // 1. Exclusions
       for (const excl of siteModel.exclusions) {
         const isSelected = appState.selectedFeatureId === excl.id;
         const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
-        // Buffer Halo if buffer_ft > 0
         if (excl.buffer_ft > 0 && excl.geometry.type === 'Polygon') {
           const bufferPx = (excl.buffer_ft / (dataset.dxGroundFeet || 1));
           const pathD = geojsonToSvgPath(excl.geometry, dataset);
@@ -2260,7 +1990,6 @@
           }
         }
 
-        // Feature Path
         if (excl.geometry.type === 'Polygon') {
           const pathD = geojsonToSvgPath(excl.geometry, dataset);
           if (pathD) {
@@ -2287,7 +2016,7 @@
         svg.appendChild(g);
       }
 
-      // 2. Render Areas
+      // 2. Areas
       for (const area of siteModel.areas) {
         const isSelected = appState.selectedFeatureId === area.id;
         const pathD = geojsonToSvgPath(area.geometry, dataset);
@@ -2302,7 +2031,6 @@
           }
           g.appendChild(path);
 
-          // Label center
           const ring = area.geometry.coordinates[0];
           let cx = 0, cy = 0;
           ring.forEach(pt => {
@@ -2322,7 +2050,7 @@
         }
       }
 
-      // 3. Render Infrastructure Pins
+      // 3. Pins
       if (siteModel.water_source.location) {
         const [wPx, wPy] = wgs84ToPixel(siteModel.water_source.location[0], siteModel.water_source.location[1], dataset);
         renderMarkerPin(svg, wPx, wPy, "💧", "#0284c7", "Water Supply");
@@ -2333,7 +2061,6 @@
         renderMarkerPin(svg, cPx, cPy, "⚡", "#818cf8", "Controller");
       }
 
-      // 4. Render Vertex Edit Handles if edit mode active
       renderVertexEditHandles();
       updateFeaturesInventory();
 
@@ -2377,7 +2104,6 @@
         const [lon, lat] = ring[i];
         const [px, py] = wgs84ToPixel(lon, lat, appState.dataset);
 
-        // Vertex Handle
         const handle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         handle.setAttribute("cx", px);
         handle.setAttribute("cy", py);
@@ -2386,7 +2112,6 @@
         handle.setAttribute("data-vertex-index", i);
         svg.appendChild(handle);
 
-        // Segment Midpoint Insert Handle
         const nextIdx = (i + 1) % ring.length;
         const [nextLon, nextLat] = ring[nextIdx];
         const [nPx, nPy] = wgs84ToPixel(nextLon, nextLat, appState.dataset);
@@ -2495,14 +2220,12 @@
       }
     }
 
-    // Tool Switcher & Auto-dimming
     function setActiveTool(tool) {
       appState.activeTool = tool;
       document.querySelectorAll('#drawing-toolbar .tool-btn[data-tool]').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-tool') === tool);
       });
 
-      // Auto-dim layers during drawing workflow for aerial legibility
       const isDrawingActive = tool !== 'pan';
       elements.hillshadeCanvas.style.opacity = isDrawingActive ? '0.12' : (appState.dataset ? elements.sliderOpacityHillshade.value / 100 : '0.40');
       elements.contourSvg.style.opacity = isDrawingActive ? '0.20' : (appState.dataset ? elements.sliderOpacityContours.value / 100 : '1.0');
@@ -2520,7 +2243,6 @@
       elements.drawLivePill.style.display = 'none';
     }
 
-    // 2D Drawing & Pointer Event Handlers
     function initDrawingEngine() {
       const stage = elements.mapStage;
 
@@ -2535,7 +2257,6 @@
           if (snap) { px = snap.px; py = snap.py; }
         }
 
-        // Vertex Edit Mode Dragging
         if (appState.activeTool === 'edit-vertices') {
           const target = e.target;
           if (target.classList.contains('vertex-handle')) {
@@ -2550,7 +2271,6 @@
           }
         }
 
-        // Normal Pan Mode
         if (appState.activeTool === 'pan') {
           appState.drag.isDragging = true;
           appState.drag.hasMoved = false;
@@ -2561,7 +2281,6 @@
           return;
         }
 
-        // Point Placement (Water Source / Controller)
         if (appState.activeTool === 'place-water') {
           const [lon, lat] = pixelToWgs84(px, py, appState.dataset);
           pushHistoryState();
@@ -2579,7 +2298,6 @@
           return;
         }
 
-        // Shape Drawing
         const [lon, lat] = pixelToWgs84(px, py, appState.dataset);
 
         if (!appState.isDrawing) {
@@ -2587,7 +2305,6 @@
           appState.drawingPoints = [[px, py]];
           appState.drawingGeoPoints = [[lon, lat]];
         } else {
-          // Check for polygon closure (click near start point)
           if (appState.drawingPoints.length >= 3 && Math.hypot(px - appState.drawingPoints[0][0], py - appState.drawingPoints[0][1]) < 16) {
             finishDrawingShape();
           } else {
@@ -2603,19 +2320,16 @@
         let px = ((e.clientX - rect.left) / rect.width) * 512;
         let py = ((e.clientY - rect.top) / rect.height) * 512;
 
-        // Snapping check
         const snap = findSnapTarget(px, py);
         if (snap && (e.shiftKey || appState.activeTool.startsWith('draw'))) {
           px = snap.px; py = snap.py;
         }
 
-        // Vertex dragging
         if (appState.isDraggingVertex && appState.editVertexIndex >= 0) {
           moveVertexTo(appState.editVertexIndex, px, py);
           return;
         }
 
-        // Pan dragging
         if (appState.drag.isDragging && appState.activeTool === 'pan') {
           const dx = e.clientX - appState.drag.startX;
           const dy = e.clientY - appState.drag.startY;
@@ -2628,12 +2342,10 @@
           return;
         }
 
-        // Drawing rubberband preview
         if (appState.isDrawing) {
           renderDrawingPreview(px, py);
         }
 
-        // Live cursor elevation & slope readout
         if (appState.dataset) {
           const elevFt = sampleElevationAtPixel(px, py, appState.dataset);
           elements.hoverElev.textContent = `${elevFt.toFixed(1)} ft`;
@@ -2673,7 +2385,6 @@
         }
       });
 
-      // Right-click to delete vertex in edit mode
       stage.addEventListener('contextmenu', (e) => {
         if (appState.activeTool === 'edit-vertices') {
           e.preventDefault();
@@ -2711,7 +2422,6 @@
       previewPath.setAttribute("stroke-dasharray", "5 3");
       svg.appendChild(previewPath);
 
-      // Live metrics pill
       const pill = elements.drawLivePill;
       pill.style.display = 'block';
       pill.style.left = `${currPx + 15}px`;
@@ -2759,7 +2469,6 @@
         siteModel.exclusions.push(excl);
         selectFeature(excl.id, "exclusion");
       } else {
-        // Draw Area
         const area = {
           id: newId,
           name: `Zone ${siteModel.areas.length + 1}`,
@@ -2792,7 +2501,7 @@
 
       ring[idx] = [lon, lat];
       if (feat.geometry.type === 'Polygon' && idx === 0) {
-        ring[ring.length - 1] = [lon, lat]; // Keep polygon closed
+        ring[ring.length - 1] = [lon, lat];
       }
 
       renderSiteModel();
@@ -2872,7 +2581,6 @@
       reader.onload = (e) => {
         try {
           const parsed = JSON.parse(e.target.result);
-          // Validate required schema shape
           if (!parsed || parsed.version !== 1 || !parsed.site || !parsed.water_source || !Array.isArray(parsed.areas)) {
             throw new Error("Invalid Site Model JSON format: Missing required schema root properties.");
           }
@@ -3011,20 +2719,17 @@
       offscreen.height = 1024;
       const ctx = offscreen.getContext('2d');
 
-      // 1. Imagery
-      if (elements.imageryCanvas) {
+      if (elements.imageryCanvas && elements.imageryCanvas instanceof HTMLCanvasElement) {
         ctx.drawImage(elements.imageryCanvas, 0, 0, 1024, 1024);
       }
 
-      // 2. Hillshade Multiply
-      if (elements.hillshadeCanvas) {
+      if (elements.hillshadeCanvas && elements.hillshadeCanvas instanceof HTMLCanvasElement) {
         ctx.globalAlpha = 0.40;
         ctx.globalCompositeOperation = 'multiply';
         ctx.drawImage(elements.hillshadeCanvas, 0, 0, 1024, 1024);
         ctx.globalCompositeOperation = 'source-over';
       }
 
-      // 3. Contours
       if (dataset && isFinite(dataset.minFeet) && isFinite(dataset.maxFeet)) {
         ctx.save();
         ctx.scale(1024 / dataset.width, 1024 / dataset.height);
@@ -3041,7 +2746,6 @@
         ctx.restore();
       }
 
-      // 4. Authored Site Model Areas & Exclusions draped on 3D
       if (dataset) {
         ctx.save();
         for (const area of siteModel.areas) {
@@ -3269,7 +2973,11 @@
 
         siteModel.site.centroid = [lon, lat];
 
+        renderHillshade(dataset);
+        renderContours(dataset);
         renderParcels(parcelsData, dataset);
+        updateParcelStatsDisplay();
+
         recalculateAllDerivedStats();
         renderSiteModel();
         updateInspector();
@@ -3385,15 +3093,91 @@
           btn.classList.add('active');
           const tab = btn.getAttribute('data-tab');
           document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
-          document.getElementById(`tab-content-${tab}`).style.display = 'flex';
-          document.getElementById(`tab-content-${tab}`).style.flexDirection = 'column';
-          document.getElementById(`tab-content-${tab}`).style.gap = '10px';
+          const activePane = document.getElementById(`tab-content-${tab}`);
+          if (activePane) {
+            activePane.style.display = 'flex';
+            activePane.style.flexDirection = 'column';
+            activePane.style.gap = '10px';
+          }
         });
       });
 
       // 2D/3D Mode
       elements.btnMode2D.addEventListener('click', () => setViewMode("2d"));
       elements.btnMode3D.addEventListener('click', () => setViewMode("3d"));
+
+      // Lock Stats, Contours & 3D to Parcel Toggle
+      elements.toggleParcelClip.addEventListener('change', (e) => {
+        appState.clipToParcel = e.target.checked;
+        if (appState.dataset) {
+          renderContours(appState.dataset);
+          renderParcels(appState.parcelsGeoJSON, appState.dataset);
+          updateParcelStatsDisplay();
+          if (appState.viewMode === "3d") {
+            build3DTerrainMesh(appState.dataset);
+          }
+        }
+      });
+
+      // Radius Selector
+      elements.radiusControl.querySelectorAll('.segment-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          elements.radiusControl.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const r = parseInt(btn.dataset.radius, 10);
+          appState.radiusMeters = r;
+          loadCoordinatesPipeline(appState.lat, appState.lon, appState.radiusMeters);
+        });
+      });
+
+      // Contour Interval Selector
+      elements.intervalControl.querySelectorAll('.segment-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          elements.intervalControl.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          appState.contourIntervalFt = parseInt(btn.dataset.interval, 10);
+          if (appState.dataset) {
+            renderContours(appState.dataset);
+            if (appState.viewMode === "3d") build3DTerrainMesh(appState.dataset);
+          }
+        });
+      });
+
+      // Layer Opacities
+      elements.sliderOpacityHillshade.addEventListener('input', (e) => {
+        const val = e.target.value;
+        elements.valOpacityHillshade.textContent = `${val}%`;
+        elements.hillshadeCanvas.style.opacity = (val / 100).toString();
+      });
+
+      elements.sliderOpacityContours.addEventListener('input', (e) => {
+        const val = e.target.value;
+        elements.valOpacityContours.textContent = `${val}%`;
+        elements.contourSvg.style.opacity = (val / 100).toString();
+      });
+
+      elements.sliderOpacityParcels.addEventListener('input', (e) => {
+        const val = e.target.value;
+        elements.valOpacityParcels.textContent = `${val}%`;
+        elements.parcelsSvg.style.opacity = (val / 100).toString();
+      });
+
+      // Zoom Controls
+      elements.btnZoomIn.addEventListener('click', () => {
+        if (appState.radiusMeters === 400) setRadius(200);
+        else if (appState.radiusMeters === 200) setRadius(100);
+      });
+      elements.btnZoomOut.addEventListener('click', () => {
+        if (appState.radiusMeters === 100) setRadius(200);
+        else if (appState.radiusMeters === 200) setRadius(400);
+      });
+      elements.btnRecenter.addEventListener('click', () => {
+        if (siteModel.site.centroid) {
+          appState.lat = siteModel.site.centroid[1];
+          appState.lon = siteModel.site.centroid[0];
+          loadCoordinatesPipeline(appState.lat, appState.lon, appState.radiusMeters);
+        }
+      });
 
       // Drawing Tools
       document.querySelectorAll('#drawing-toolbar .tool-btn[data-tool]').forEach(btn => {
@@ -3533,6 +3317,14 @@
       initDrawingEngine();
     }
 
+    function setRadius(r) {
+      appState.radiusMeters = r;
+      elements.radiusControl.querySelectorAll('.segment-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.radius, 10) === r);
+      });
+      loadCoordinatesPipeline(appState.lat, appState.lon, appState.radiusMeters);
+    }
+
     async function loadAddress(address) {
       try {
         const nomUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1&countrycodes=us`;
@@ -3599,7 +3391,6 @@
       setupEventListeners();
       await loadHeadsDatabase();
 
-      // Parse URL parameters
       const params = new URLSearchParams(window.location.search);
       if (params.has('address')) {
         const addr = params.get('address');
@@ -3627,7 +3418,6 @@
 
       const initialMode = params.get('mode') || '2d';
 
-      // Load initial coordinates
       await loadCoordinatesPipeline(appState.lat, appState.lon, appState.radiusMeters);
 
       if (initialMode === '3d') {
