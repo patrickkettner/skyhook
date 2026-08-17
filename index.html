@@ -1,0 +1,3580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skyhook — Irrigation Site Model Author &amp; 2D/3D Topo Planner</title>
+  <meta name="description" content="Site model authoring, 2D/3D LiDAR topography, parcel cadastre, hydraulic pressure analysis, and lawn irrigation planning.">
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- CDN Dependencies: D3.js v7 and Esri LERC Decoder -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lerc@3.0.0/LercDecode.js"></script>
+
+  <!-- Import Map for Three.js and Addons -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg-base: #0c1017;
+      --bg-surface: #151b23;
+      --bg-card: #1c2128;
+      --bg-elevated: #262c36;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: #38bdf8;
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent-emerald: #10b981;
+      --accent-sky: #38bdf8;
+      --accent-amber: #f59e0b;
+      --accent-yellow: #facc15;
+      --accent-rose: #f43f5e;
+      --accent-indigo: #818cf8;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 8px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, #10b981 0%, #0284c7 100%);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 17px;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .brand-subtitle {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+
+    .header-center-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 2D / 3D Mode Toggle */
+    .view-mode-toggle {
+      display: flex;
+      background-color: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .view-mode-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 5px 13px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      border-radius: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+
+    .view-mode-btn.active {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: white;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header-chip {
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .header-chip:hover {
+      background: #30363d;
+      color: var(--text-primary);
+      border-color: var(--accent-sky);
+    }
+
+    .header-chip.accent {
+      border-color: rgba(56, 189, 248, 0.4);
+      color: var(--accent-sky);
+    }
+
+    /* Main Container */
+    .app-layout {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 410px 1fr;
+      height: calc(100vh - 53px);
+      overflow: hidden;
+    }
+
+    @media (max-width: 1100px) {
+      .app-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+        overflow-y: auto;
+      }
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background-color: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+    }
+
+    /* Sidebar Tab Switcher */
+    .sidebar-nav-tabs {
+      display: flex;
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .sidebar-tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 5px 6px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .sidebar-tab-btn.active {
+      background: var(--bg-card);
+      color: var(--accent-sky);
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .panel-section {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .panel-title svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--accent-sky);
+    }
+
+    /* Inputs */
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .input-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .search-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .text-input, .select-input {
+      background-color: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      padding: 6px 9px;
+      font-size: 0.82rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s ease;
+      width: 100%;
+    }
+
+    .text-input:focus, .select-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .primary-btn:hover {
+      background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+    }
+
+    .secondary-btn {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 5px 8px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+
+    .secondary-btn:hover {
+      background: #30363d;
+      border-color: var(--text-secondary);
+    }
+
+    .danger-btn {
+      background: rgba(244, 63, 94, 0.15);
+      color: var(--accent-rose);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      border-radius: var(--radius-sm);
+      padding: 5px 8px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .danger-btn:hover {
+      background: rgba(244, 63, 94, 0.3);
+    }
+
+    /* Segmented Controls */
+    .segmented-control {
+      display: flex;
+      background-color: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .segment-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 4px 6px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+
+    .segment-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .segment-btn.active {
+      background-color: var(--accent-sky);
+      color: #0c1017;
+      font-weight: 700;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    /* Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 32px;
+      height: 17px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #30363d;
+      transition: .2s;
+      border-radius: 17px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 11px;
+      width: 11px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .2s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent-emerald);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(15px);
+    }
+
+    /* Sliders */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .slider-label {
+      font-size: 0.66rem;
+      color: var(--text-muted);
+      width: 50px;
+      font-weight: 500;
+    }
+
+    .range-input {
+      flex: 1;
+      accent-color: var(--accent-sky);
+      cursor: pointer;
+      height: 4px;
+    }
+
+    .slider-value-readout {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      width: 34px;
+      text-align: right;
+    }
+
+    /* Advisory Validation Banner */
+    .validation-card {
+      background: linear-gradient(180deg, rgba(30, 27, 75, 0.4) 0%, rgba(15, 23, 42, 0.7) 100%);
+      border: 1px solid rgba(129, 140, 248, 0.3);
+      border-radius: var(--radius-lg);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .validation-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .validation-title {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--accent-indigo);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .validation-issue-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .validation-issue-item {
+      font-size: 0.72rem;
+      padding: 4px 6px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      line-height: 1.35;
+    }
+
+    .validation-issue-item.warn {
+      border-left: 3px solid var(--accent-amber);
+      color: #fef3c7;
+    }
+
+    .validation-issue-item.error {
+      border-left: 3px solid var(--accent-rose);
+      color: #ffe4e6;
+    }
+
+    .validation-issue-item.ok {
+      border-left: 3px solid var(--accent-emerald);
+      color: #d1fae5;
+    }
+
+    /* Water Source / Well Advisory Banner */
+    .yield-warning-banner {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: var(--radius-sm);
+      padding: 7px 9px;
+      font-size: 0.72rem;
+      color: #fef08a;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      line-height: 1.35;
+    }
+
+    /* Feature Items List */
+    .features-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .feature-item-row {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 6px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .feature-item-row:hover {
+      border-color: var(--accent-sky);
+      background: #2d333b;
+    }
+
+    .feature-item-row.selected {
+      border-color: var(--accent-sky);
+      background: rgba(56, 189, 248, 0.15);
+    }
+
+    .feature-item-left {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.76rem;
+      font-weight: 600;
+    }
+
+    .feature-color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .feature-item-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+    }
+
+    /* Derived Stats Box */
+    .derived-stats-box {
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 8px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .derived-stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .derived-stat-label {
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .derived-stat-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .pressure-spread-pill {
+      grid-column: span 2;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 4px;
+      padding: 4px 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--accent-sky);
+      text-align: center;
+    }
+
+    /* Map Viewport Area */
+    .viewport-container {
+      position: relative;
+      background-color: #080c10;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .map-wrapper {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      overflow: hidden;
+    }
+
+    .map-stage {
+      position: relative;
+      width: min(88vh, 88vw, 760px);
+      height: min(88vh, 88vw, 760px);
+      aspect-ratio: 1 / 1;
+      background: #0d1117;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg), 0 0 0 1px var(--border-subtle);
+      overflow: hidden;
+      cursor: default;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .map-stage.cursor-pan {
+      cursor: grab;
+    }
+    .map-stage.cursor-pan.is-dragging {
+      cursor: grabbing !important;
+    }
+    .map-stage.cursor-crosshair {
+      cursor: crosshair;
+    }
+
+    /* Map Layers Container */
+    .map-layers-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      will-change: transform;
+    }
+
+    #imagery-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #hillshade-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      mix-blend-mode: multiply;
+      opacity: 0.40;
+      transition: opacity 0.2s ease;
+    }
+
+    #color-ramp-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      mix-blend-mode: multiply;
+      opacity: 0.55;
+      display: none;
+      transition: opacity 0.2s ease;
+    }
+
+    #parcels-svg, #site-model-svg, #contour-svg, #draw-svg, #interaction-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    #three-viewport {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      z-index: 10;
+      outline: none;
+    }
+
+    /* Interactive Floating Drawing Toolbar */
+    .drawing-toolbar-overlay {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(22, 27, 34, 0.92);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 30px;
+      padding: 4px 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      z-index: 30;
+    }
+
+    .tool-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 6px 10px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      border-radius: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+
+    .tool-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .tool-btn.active {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: white;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .toolbar-divider {
+      width: 1px;
+      height: 18px;
+      background: var(--border-subtle);
+      margin: 0 2px;
+    }
+
+    /* Live Cursor Tooltip */
+    .draw-live-pill {
+      position: absolute;
+      background: rgba(12, 16, 23, 0.9);
+      backdrop-filter: blur(6px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 3px 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      pointer-events: none;
+      z-index: 40;
+      display: none;
+      transform: translate(14px, 14px);
+    }
+
+    /* Overlay Cards */
+    .map-overlay-card {
+      position: absolute;
+      background: rgba(22, 27, 34, 0.88);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 6px 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      z-index: 25;
+      pointer-events: auto;
+    }
+
+    .top-left-card {
+      top: 16px;
+      left: 16px;
+      max-width: 280px;
+    }
+
+    .top-right-compass {
+      top: 16px;
+      right: 16px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      cursor: pointer;
+    }
+
+    .compass-needle {
+      width: 28px;
+      height: 28px;
+      transition: transform 0.1s linear;
+    }
+
+    .map-nav-controls {
+      top: 68px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 4px;
+    }
+
+    .nav-btn {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .nav-btn:hover {
+      background: #30363d;
+      border-color: var(--accent-sky);
+      color: var(--accent-sky);
+    }
+
+    .scale-bar-container {
+      bottom: 16px;
+      left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .scale-bar-graphic {
+      height: 4px;
+      border: 1px solid #ffffff;
+      border-top: none;
+      background: linear-gradient(90deg, #ffffff 50%, #000000 50%);
+    }
+
+    .scale-bar-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .bottom-center-inspector {
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    /* Modal Drawer for Heads Database */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(12, 16, 23, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-dialog {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      width: min(90vw, 850px);
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-body {
+      padding: 14px 18px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Heads Table */
+    .heads-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.76rem;
+    }
+
+    .heads-table th, .heads-table td {
+      padding: 7px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .heads-table th {
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.65rem;
+      font-weight: 600;
+      background: var(--bg-card);
+    }
+
+    .heads-table tr:hover td {
+      background: rgba(255,255,255,0.03);
+    }
+
+    /* SVG Style Classes for Authoring */
+    .area-poly-turf {
+      fill: rgba(16, 185, 129, 0.28);
+      stroke: #10b981;
+      stroke-width: 2.2;
+    }
+    .area-poly-beds {
+      fill: rgba(245, 158, 11, 0.28);
+      stroke: #f59e0b;
+      stroke-width: 2.2;
+    }
+    .area-poly-garden {
+      fill: rgba(56, 189, 248, 0.28);
+      stroke: #38bdf8;
+      stroke-width: 2.2;
+    }
+    .area-poly-orchard {
+      fill: rgba(168, 85, 247, 0.28);
+      stroke: #a855f7;
+      stroke-width: 2.2;
+    }
+    .area-poly-none {
+      fill: rgba(148, 163, 184, 0.2);
+      stroke: #94a3b8;
+      stroke-width: 2.0;
+    }
+
+    .exclusion-buffer-halo {
+      fill: rgba(244, 63, 94, 0.16);
+      stroke: #f43f5e;
+      stroke-width: 1.2;
+      stroke-dasharray: 4 3;
+    }
+
+    .exclusion-poly {
+      fill: rgba(244, 63, 94, 0.35);
+      stroke: #f43f5e;
+      stroke-width: 2.0;
+    }
+
+    .exclusion-line {
+      fill: none;
+      stroke: #f43f5e;
+      stroke-width: 3.0;
+      stroke-dasharray: 6 3;
+    }
+
+    .vertex-handle {
+      fill: #ffffff;
+      stroke: #0284c7;
+      stroke-width: 2;
+      cursor: grab;
+      pointer-events: auto;
+    }
+
+    .vertex-midpoint-handle {
+      fill: rgba(56, 189, 248, 0.8);
+      stroke: #ffffff;
+      stroke-width: 1.5;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+
+    .snap-indicator {
+      fill: none;
+      stroke: #facc15;
+      stroke-width: 2;
+      stroke-dasharray: 3 3;
+      pointer-events: none;
+    }
+
+    .contour-path-index { fill: none; stroke: #1c1917; stroke-width: 1.8; stroke-opacity: 0.95; }
+    .contour-path-inter { fill: none; stroke: #44403c; stroke-width: 0.9; stroke-opacity: 0.70; }
+    .contour-label { font-family: 'Inter', sans-serif; font-size: 9.5px; font-weight: 700; fill: #1c1917; paint-order: stroke fill; stroke: rgba(255, 255, 255, 0.96); stroke-width: 2.8px; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+    .parcel-line-general { fill: none; stroke: #facc15; stroke-width: 1.2; stroke-opacity: 0.85; }
+    .parcel-polygon-highlight { fill: rgba(250, 204, 21, 0.15); stroke: #facc15; stroke-width: 2.6; }
+    
+    .loading-overlay { position: absolute; inset: 0; background: rgba(12, 16, 23, 0.85); backdrop-filter: blur(6px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+    .loading-overlay.active { opacity: 1; pointer-events: auto; }
+    .spinner { width: 34px; height: 34px; border: 3px solid rgba(56, 189, 248, 0.2); border-top-color: var(--accent-sky); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div>
+        <h1 class="brand-title">Skyhook Site Model Author</h1>
+        <p class="brand-subtitle">Lawn Irrigation Topography &amp; Zone Modeler</p>
+      </div>
+    </div>
+
+    <!-- 2D / 3D Mode Toggle -->
+    <div class="header-center-controls">
+      <div class="view-mode-toggle" id="view-mode-control">
+        <button type="button" class="view-mode-btn active" id="btn-mode-2d">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+          2D Author
+        </button>
+        <button type="button" class="view-mode-btn" id="btn-mode-3d">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+          3D Diorama
+        </button>
+      </div>
+    </div>
+
+    <!-- Header Actions & Heads DB -->
+    <div class="header-actions">
+      <button class="header-chip" id="btn-open-heads-db" title="Browse published nozzle and rotor performance tables">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        <span>Heads DB</span>
+      </button>
+      <button class="header-chip accent" id="btn-save-model" title="Save Site Model JSON file">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+        <span>Save Model</span>
+      </button>
+      <button class="header-chip" id="btn-load-model" title="Load Site Model JSON file">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+        <span>Load Model</span>
+      </button>
+      <input type="file" id="file-import-input" accept=".json,application/json" style="display: none;">
+    </div>
+  </header>
+
+  <!-- App Layout -->
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+      <!-- Navigation Tabs -->
+      <div class="sidebar-nav-tabs">
+        <button class="sidebar-tab-btn active" data-tab="site-author">📐 Site &amp; Areas</button>
+        <button class="sidebar-tab-btn" data-tab="water-infra">💧 Water Source</button>
+        <button class="sidebar-tab-btn" data-tab="diagnostics">🛡️ Validation</button>
+        <button class="sidebar-tab-btn" data-tab="layers-topo">🗺️ Topo / 3D</button>
+      </div>
+
+      <!-- TAB 1: SITE & AREAS AUTHORING -->
+      <div id="tab-content-site-author" class="tab-pane">
+
+        <!-- Location Search & Parcel Status -->
+        <div class="panel-section">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              Property &amp; Extent
+            </div>
+            <span id="autosave-status" style="font-size: 0.65rem; color: var(--accent-emerald); font-weight: 600;">✓ Synced</span>
+          </div>
+
+          <form id="search-form" class="search-row" onsubmit="return false;">
+            <input type="text" id="address-input" class="text-input" placeholder="Enter US street address..." value="241 Lammey Road, Honey Brook, PA 19344">
+            <button type="submit" id="search-btn" class="primary-btn">Locate</button>
+          </form>
+
+          <div class="slider-row">
+            <span class="slider-label">Radius</span>
+            <div class="segmented-control" id="radius-control" style="flex: 1;">
+              <button type="button" class="segment-btn active" data-radius="100">100m</button>
+              <button type="button" class="segment-btn" data-radius="200">200m</button>
+              <button type="button" class="segment-btn" data-radius="400">400m</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Feature Inspector -->
+        <div class="panel-section" id="inspector-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              <span id="inspector-title">Selected Feature</span>
+            </div>
+            <button type="button" class="danger-btn" id="btn-delete-feature" style="display: none;">Delete</button>
+          </div>
+
+          <div id="inspector-empty-state" style="font-size: 0.72rem; color: var(--text-muted); text-align: center; padding: 12px 6px;">
+            No feature selected. Select or draw an Area or Exclusion zone on the map.
+          </div>
+
+          <!-- Area Fields Form -->
+          <div id="inspector-area-fields" style="display: none; flex-direction: column; gap: 8px;">
+            <div class="input-group">
+              <label class="input-label">Zone Name</label>
+              <input type="text" id="area-input-name" class="text-input" value="Front Lawn">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+              <div class="input-group">
+                <label class="input-label">Landscape Kind</label>
+                <select id="area-select-kind" class="select-input">
+                  <option value="turf">Turf Lawn</option>
+                  <option value="beds">Shrub / Beds</option>
+                  <option value="garden">Vegetable Garden</option>
+                  <option value="orchard">Trees / Orchard</option>
+                  <option value="none">None / Bare</option>
+                </select>
+              </div>
+
+              <div class="input-group">
+                <label class="input-label">Priority</label>
+                <select id="area-select-priority" class="select-input">
+                  <option value="must">Must Water</option>
+                  <option value="nice">Nice to Have</option>
+                  <option value="dormant_ok">Dormant OK</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+              <div class="input-group">
+                <label class="input-label">Sun Exposure</label>
+                <select id="area-select-sun" class="select-input">
+                  <option value="full">Full Sun</option>
+                  <option value="part">Part Shade</option>
+                  <option value="shade">Deep Shade</option>
+                </select>
+              </div>
+
+              <div class="input-group">
+                <label class="input-label">Soil Texture</label>
+                <select id="area-select-soil" class="select-input">
+                  <option value="loam">Loam</option>
+                  <option value="clay">Clay / Dense</option>
+                  <option value="sand">Sandy / Fast Drain</option>
+                  <option value="unknown">Unknown</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Derived DEM Metrics -->
+            <div class="derived-stats-box">
+              <div class="derived-stat-item">
+                <span class="derived-stat-label">Area</span>
+                <span class="derived-stat-val" id="area-stat-size">—</span>
+              </div>
+              <div class="derived-stat-item">
+                <span class="derived-stat-label">Perimeter</span>
+                <span class="derived-stat-val" id="area-stat-perim">—</span>
+              </div>
+              <div class="derived-stat-item">
+                <span class="derived-stat-label">Mean Slope / Aspect</span>
+                <span class="derived-stat-val" id="area-stat-slope">—</span>
+              </div>
+              <div class="derived-stat-item">
+                <span class="derived-stat-label">Elev Range</span>
+                <span class="derived-stat-val" id="area-stat-elev">—</span>
+              </div>
+              <div class="pressure-spread-pill" id="area-stat-psi">
+                Relief: — ft = — psi spread
+              </div>
+            </div>
+          </div>
+
+          <!-- Exclusion Fields Form -->
+          <div id="inspector-exclusion-fields" style="display: none; flex-direction: column; gap: 8px;">
+            <div class="input-group">
+              <label class="input-label">Exclusion Name</label>
+              <input type="text" id="excl-input-name" class="text-input" value="Septic Field">
+            </div>
+
+            <div class="input-group">
+              <label class="input-label">Exclusion Kind</label>
+              <select id="excl-select-kind" class="select-input">
+                <option value="structure">Building / House</option>
+                <option value="driveway">Driveway / Walkway</option>
+                <option value="septic_tank">Septic Tank</option>
+                <option value="septic_field">Septic Drain Field</option>
+                <option value="well_head">Well Head</option>
+                <option value="utility">Buried Utility</option>
+                <option value="tree">Mature Tree Root Zone</option>
+                <option value="no_spray">No-Spray Boundary</option>
+                <option value="other">Other Obstacle</option>
+              </select>
+            </div>
+
+            <div class="slider-row">
+              <span class="slider-label">Buffer Halo</span>
+              <input type="range" id="excl-slider-buffer" class="range-input" min="0" max="25" step="1" value="5">
+              <span class="slider-value-readout" id="excl-val-buffer">5 ft</span>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 2px;">
+              <label style="font-size: 0.74rem; display: flex; align-items: center; gap: 5px;">
+                <input type="checkbox" id="excl-check-nospray" checked> No Spray
+              </label>
+              <label style="font-size: 0.74rem; display: flex; align-items: center; gap: 5px;">
+                <input type="checkbox" id="excl-check-notrench" checked> No Trenching
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Site Model Features Inventory -->
+        <div class="panel-section">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+              Site Features Inventory
+            </div>
+            <span id="features-count" style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600;">0 areas</span>
+          </div>
+
+          <div class="features-list" id="features-inventory-list">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAB 2: WATER INFRASTRUCTURE & WELL CAPACITY -->
+      <div id="tab-content-water-infra" class="tab-pane" style="display: none;">
+        
+        <div class="panel-section">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+              Water Supply &amp; Source
+            </div>
+          </div>
+
+          <!-- Non-blocking persistent warning if yield unknown -->
+          <div class="yield-warning-banner" id="banner-well-yield-unknown">
+            <span>⚠️</span>
+            <span><strong>Well yield unknown:</strong> Later irrigation hydraulic capacity checks will be unreliable until yield is measured.</span>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">Supply Type</label>
+            <select id="water-select-type" class="select-input">
+              <option value="well">Private Well &amp; Pressure Tank</option>
+              <option value="municipal">Municipal Water Utility</option>
+              <option value="cistern">Cistern / Rainwater Tank</option>
+            </select>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+            <div class="input-group">
+              <label class="input-label">Static Pressure (PSI)</label>
+              <input type="number" id="water-input-psi" class="text-input" placeholder="e.g. 55" value="50">
+            </div>
+            <div class="input-group">
+              <label class="input-label">Safe Yield (GPM)</label>
+              <input type="number" id="water-input-gpm" class="text-input" placeholder="e.g. 12" step="0.5">
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">Yield Confidence</label>
+            <select id="water-select-confidence" class="select-input">
+              <option value="unknown">Unknown / Untested</option>
+              <option value="estimated">Estimated (Driller Log)</option>
+              <option value="measured">Measured (Bucket / Flow Test)</option>
+            </select>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+            <div class="input-group">
+              <label class="input-label">Service Line Size</label>
+              <select id="water-select-linesize" class="select-input">
+                <option value="0.75">3/4" ID</option>
+                <option value="1.0" selected>1" ID</option>
+                <option value="1.25">1-1/4" ID</option>
+                <option value="1.5">1-1/2" ID</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label class="input-label">Pipe Material</label>
+              <select id="water-select-material" class="select-input">
+                <option value="poly">Polyethylene (PE)</option>
+                <option value="pvc">Schedule 40 PVC</option>
+                <option value="copper">Copper Type K/L</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">Water Source Location</label>
+            <div style="display: flex; gap: 6px;">
+              <input type="text" id="water-input-coords" class="text-input" readonly value="Not Placed">
+              <button type="button" class="secondary-btn" id="btn-place-water-source">Place Pin</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controller Section -->
+        <div class="panel-section">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line></svg>
+              Irrigation Controller
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+            <div class="input-group">
+              <label class="input-label">Max Stations / Zones</label>
+              <input type="number" id="ctrl-input-stations" class="text-input" value="8" min="1" max="48">
+            </div>
+            <div class="input-group">
+              <label class="input-label">Location Pin</label>
+              <button type="button" class="secondary-btn" id="btn-place-controller" style="height: 31px; margin-top: 1px;">Place Box</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAB 3: REAL-TIME ADVISORY VALIDATION -->
+      <div id="tab-content-diagnostics" class="tab-pane" style="display: none;">
+        <div class="validation-card">
+          <div class="validation-header">
+            <div class="validation-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              Live Advisory Validation
+            </div>
+            <span id="validation-badge-count" style="font-size: 0.65rem; padding: 2px 6px; border-radius: 8px; background: rgba(129, 140, 248, 0.2); color: #c7d2fe; font-weight: 700;">Active</span>
+          </div>
+          <div class="validation-issue-list" id="validation-issue-container">
+            <!-- Populated continuously by validateSiteModel() -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: 2D TOPO LAYERS & 3D DIORAMA SETTINGS -->
+      <div id="tab-content-layers-topo" class="tab-pane" style="display: none;">
+        
+        <!-- 3D Settings -->
+        <div class="panel-section" id="three-settings-section">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+              3D Terrain Diorama
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">3D Surface Texture</label>
+            <div class="segmented-control" id="three-texture-control">
+              <button type="button" class="segment-btn active" data-tex="composite">Draped Site</button>
+              <button type="button" class="segment-btn" data-tex="imagery">Aerials</button>
+              <button type="button" class="segment-btn" data-tex="colorramp">Topo Ramp</button>
+            </div>
+          </div>
+
+          <div class="slider-row">
+            <span class="slider-label">Exaggerate</span>
+            <input type="range" id="slider-exaggeration" class="range-input" min="1.0" max="5.0" step="0.2" value="2.0">
+            <span class="slider-value-readout" id="val-exaggeration">2.0x</span>
+          </div>
+
+          <div style="display: flex; gap: 6px; margin-top: 4px;">
+            <button type="button" class="secondary-btn" id="btn-export-stl" style="flex: 1;">
+              Export STL (180mm)
+            </button>
+            <button type="button" class="secondary-btn" id="btn-export-glb" style="flex: 1;">
+              Export GLB
+            </button>
+          </div>
+        </div>
+
+        <!-- 2D Layer Controls -->
+        <div class="panel-section">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+              2D Map Overlays
+            </div>
+          </div>
+
+          <div class="slider-row">
+            <span class="slider-label">Contour Step</span>
+            <div class="segmented-control" id="interval-control" style="flex: 1;">
+              <button type="button" class="segment-btn active" data-interval="1">1 ft</button>
+              <button type="button" class="segment-btn" data-interval="2">2 ft</button>
+              <button type="button" class="segment-btn" data-interval="5">5 ft</button>
+            </div>
+          </div>
+
+          <div class="slider-row">
+            <span class="slider-label">Hillshade</span>
+            <input type="range" id="slider-opacity-hillshade" class="range-input" min="0" max="100" value="40">
+            <span class="slider-value-readout" id="val-opacity-hillshade">40%</span>
+          </div>
+
+          <div class="slider-row">
+            <span class="slider-label">Contours</span>
+            <input type="range" id="slider-opacity-contours" class="range-input" min="0" max="100" value="100">
+            <span class="slider-value-readout" id="val-opacity-contours">100%</span>
+          </div>
+
+          <div class="slider-row">
+            <span class="slider-label">Parcels</span>
+            <input type="range" id="slider-opacity-parcels" class="range-input" min="0" max="100" value="100">
+            <span class="slider-value-readout" id="val-opacity-parcels">100%</span>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px;">
+            <label style="font-size: 0.74rem; font-weight: 600; color: #fef08a; display: flex; align-items: center; gap: 5px;">
+              <span>Limit 3D &amp; DEM to Parcel</span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" id="toggle-parcel-clip">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+    </aside>
+
+    <!-- Map Viewport -->
+    <main class="viewport-container">
+
+      <!-- Map Stage -->
+      <div class="map-wrapper">
+        <div class="map-stage cursor-pan" id="map-stage">
+          
+          <!-- Transformable Layers Container -->
+          <div id="map-layers-container" class="map-layers-container">
+            <canvas id="imagery-canvas" width="512" height="512"></canvas>
+            <canvas id="hillshade-canvas" width="512" height="512"></canvas>
+            <canvas id="color-ramp-canvas" width="512" height="512"></canvas>
+            <svg id="parcels-svg" viewBox="0 0 512 512"></svg>
+            <svg id="contour-svg" viewBox="0 0 512 512"></svg>
+            <svg id="site-model-svg" viewBox="0 0 512 512"></svg>
+            <svg id="draw-svg" viewBox="0 0 512 512"></svg>
+            <svg id="interaction-svg" viewBox="0 0 512 512"></svg>
+          </div>
+
+          <!-- 3D Three.js WebGL Container -->
+          <div id="three-viewport"></div>
+
+          <!-- Interactive Floating 2D Drawing Toolbar -->
+          <div class="drawing-toolbar-overlay" id="drawing-toolbar">
+            <button class="tool-btn active" data-tool="pan" title="Pan Map / Select &amp; Move (V)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+              <span>Pan</span>
+            </button>
+            <button class="tool-btn" data-tool="draw-polygon" title="Draw Landscape Area Polygon (P)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 18 21 6 21 2 8.5 12 2"></polygon></svg>
+              <span>Area</span>
+            </button>
+            <button class="tool-btn" data-tool="draw-rectangle" title="Draw Rectangular Area (R)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+              <span>Box</span>
+            </button>
+            <button class="tool-btn" data-tool="draw-exclusion-poly" title="Draw Exclusion Zone (E)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+              <span>Exclusion</span>
+            </button>
+            <button class="tool-btn" data-tool="draw-line" title="Draw Exclusion / Utility Line (L)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="4"></line><circle cx="4" cy="20" r="2"></circle><circle cx="20" cy="4" r="2"></circle></svg>
+              <span>Line</span>
+            </button>
+            <button class="tool-btn" data-tool="edit-vertices" title="Edit Vertices (N)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              <span>Edit</span>
+            </button>
+
+            <div class="toolbar-divider"></div>
+
+            <button class="tool-btn" id="btn-undo" title="Undo (Ctrl+Z)" disabled>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+            </button>
+            <button class="tool-btn" id="btn-redo" title="Redo (Ctrl+Shift+Z)" disabled>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            </button>
+          </div>
+
+          <!-- Live Drawing Metric Tooltip -->
+          <div class="draw-live-pill" id="draw-live-pill">Perim: 0 ft | Area: 0 sqft</div>
+
+          <!-- Top-Left Address Badge -->
+          <div class="map-overlay-card top-left-card">
+            <div class="address-title" id="overlay-address-title" style="font-size: 0.78rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Loading...</div>
+            <div class="address-meta" id="overlay-coords" style="font-size: 0.66rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;">Lat: —, Lon: —</div>
+          </div>
+
+          <!-- Top-Right Compass / North Arrow -->
+          <div class="map-overlay-card top-right-compass" id="compass-badge" title="True North">
+            <svg class="compass-needle" id="compass-needle-svg" viewBox="0 0 40 40">
+              <polygon points="20,4 26,20 20,16" fill="#f43f5e" />
+              <polygon points="20,4 14,20 20,16" fill="#fb7185" />
+              <polygon points="20,36 26,20 20,16" fill="#64748b" />
+              <polygon points="20,36 14,20 20,16" fill="#94a3b8" />
+              <text x="20" y="3" font-family="'Inter', sans-serif" font-size="8" font-weight="800" fill="#f43f5e" text-anchor="middle">N</text>
+            </svg>
+          </div>
+
+          <!-- Zoom Navigation Overlay -->
+          <div class="map-overlay-card map-nav-controls">
+            <button type="button" class="nav-btn" id="btn-zoom-in" title="Zoom In (+)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+            <button type="button" class="nav-btn" id="btn-zoom-out" title="Zoom Out (-)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+            <button type="button" class="nav-btn" id="btn-recenter" title="Recenter (R)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
+            </button>
+          </div>
+
+          <!-- Scale Bar -->
+          <div class="map-overlay-card scale-bar-container" id="scale-bar-card">
+            <div class="scale-bar-graphic" id="scale-bar-box" style="width: 70px;"></div>
+            <div class="scale-bar-text" id="scale-bar-label">100 ft</div>
+          </div>
+
+          <!-- Live Cursor Inspector -->
+          <div class="map-overlay-card bottom-center-inspector">
+            <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600;">ELEV:</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight: 700; color: var(--accent-sky);" id="hover-elev">—</span>
+            <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">SLOPE:</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight: 700; color: var(--accent-emerald);" id="hover-slope">—</span>
+          </div>
+
+          <!-- Loading Indicator -->
+          <div class="loading-overlay" id="loading-overlay">
+            <div class="spinner"></div>
+            <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);" id="loading-text">Loading Model...</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Legal Footer -->
+      <footer style="background: var(--bg-surface); border-top: 1px solid var(--border-subtle); padding: 5px 14px; font-size: 0.65rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+        <span>Skyhook v1.0 • Shift: Snap to vertices/parcel • Right-Click: Delete Vertex • Esc: Cancel</span>
+        <span>LiDAR: USGS 3DEP 1m • Aerial: USGS NAIP</span>
+      </footer>
+
+    </main>
+
+  </div>
+
+  <!-- HEADS DATABASE MODAL -->
+  <div class="modal-overlay" id="heads-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-sky)" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          <h2 style="font-size: 0.95rem; font-weight: 700;">Manufacturer Heads Performance Database</h2>
+        </div>
+        <button class="secondary-btn" id="btn-close-heads-modal">✕ Close</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <input type="text" id="heads-search-input" class="text-input" placeholder="Search brand, model, nozzle..." style="max-width: 250px;">
+          <select id="heads-filter-type" class="select-input" style="max-width: 140px;">
+            <option value="all">All Types</option>
+            <option value="spray">Spray / MPR</option>
+            <option value="rotor">Gear Rotor</option>
+            <option value="drip">Dripline</option>
+          </select>
+          <select id="heads-filter-brand" class="select-input" style="max-width: 140px;">
+            <option value="all">All Brands</option>
+            <option value="Hunter">Hunter</option>
+            <option value="Rain Bird">Rain Bird</option>
+          </select>
+        </div>
+
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+          <table class="heads-table">
+            <thead>
+              <tr>
+                <th>Brand / Model</th>
+                <th>Type</th>
+                <th>Radius (ft)</th>
+                <th>Arc</th>
+                <th>GPM</th>
+                <th>PSI</th>
+                <th>Precip (in/hr)</th>
+                <th>Source</th>
+              </tr>
+            </thead>
+            <tbody id="heads-table-body">
+              <!-- Populated from heads.json -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main ES Module Application Logic -->
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { STLExporter } from 'three/addons/exporters/STLExporter.js';
+    import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+
+    const METERS_TO_FEET = 3.280839895013123;
+    const PSI_PER_VERTICAL_FOOT = 0.43328;
+    const WEB_MERCATOR_R = 6378137.0;
+
+    // Site Model Schema & State
+    const siteModel = {
+      version: 1,
+      site: {
+        address: "241 Lammey Road, Honey Brook, PA 19344",
+        centroid: [-75.80915, 40.12208],
+        parcel: null,
+        units: "imperial"
+      },
+      water_source: {
+        type: "well",
+        location: null,
+        static_pressure_psi: 50,
+        safe_yield_gpm: null,
+        yield_confidence: "unknown",
+        service_line: { size_in: 1.0, material: "poly", length_ft: null },
+        notes: ""
+      },
+      controller: {
+        location: null,
+        max_stations: 8,
+        notes: ""
+      },
+      areas: [],
+      exclusions: [],
+      obstacles_auto: [],
+      notes: ""
+    };
+
+    const appState = {
+      lat: 40.12208,
+      lon: -75.80915,
+      radiusMeters: 100,
+      contourIntervalFt: 1,
+      viewMode: "2d",
+      activeTool: "pan", // "pan"|"draw-polygon"|"draw-rectangle"|"draw-exclusion-poly"|"draw-line"|"edit-vertices"
+      selectedFeatureId: null,
+      selectedFeatureType: null, // "area"|"exclusion"|"water_source"|"controller"
+      
+      // Drawing runtime state
+      drawingPoints: [], // [[px, py], ...]
+      drawingGeoPoints: [], // [[lon, lat], ...]
+      isDrawing: false,
+      editVertexIndex: -1,
+      isDraggingVertex: false,
+      snapTarget: null, // { px, py, lon, lat }
+      
+      // History undo/redo stack
+      undoStack: [],
+      redoStack: [],
+      
+      // Elevation & Parcels
+      dataset: null,
+      parcelsGeoJSON: null,
+      highlightedParcel: null,
+      clipToParcel: false,
+      headsDatabase: [],
+
+      // 3D Three.js
+      three: {
+        renderer: null,
+        scene: null,
+        camera: null,
+        controls: null,
+        terrainGroup: null,
+        terrainMesh: null,
+        raycaster: new THREE.Raycaster(),
+        mouse: new THREE.Vector2(),
+        exaggeration: 2.0,
+        textureMode: "composite",
+        isInitialized: false,
+        rawZValues: null,
+        gridSize: 256
+      },
+
+      // 2D Pan Drag
+      drag: { isDragging: false, startX: 0, startY: 0, currentDx: 0, currentDy: 0, hasMoved: false }
+    };
+
+    // DOM Elements
+    const elements = {
+      addressInput: document.getElementById('address-input'),
+      searchForm: document.getElementById('search-form'),
+      searchBtn: document.getElementById('search-btn'),
+      radiusControl: document.getElementById('radius-control'),
+      intervalControl: document.getElementById('interval-control'),
+      btnMode2D: document.getElementById('btn-mode-2d'),
+      btnMode3D: document.getElementById('btn-mode-3d'),
+      btnOpenHeadsDb: document.getElementById('btn-open-heads-db'),
+      btnSaveModel: document.getElementById('btn-save-model'),
+      btnLoadModel: document.getElementById('btn-load-model'),
+      fileImportInput: document.getElementById('file-import-input'),
+      headsModal: document.getElementById('heads-modal'),
+      btnCloseHeadsModal: document.getElementById('btn-close-heads-modal'),
+      headsTableBody: document.getElementById('heads-table-body'),
+      headsSearchInput: document.getElementById('heads-search-input'),
+      headsFilterType: document.getElementById('heads-filter-type'),
+      headsFilterBrand: document.getElementById('heads-filter-brand'),
+      
+      drawingToolbar: document.getElementById('drawing-toolbar'),
+      btnUndo: document.getElementById('btn-undo'),
+      btnRedo: document.getElementById('btn-redo'),
+      drawLivePill: document.getElementById('draw-live-pill'),
+      
+      mapStage: document.getElementById('map-stage'),
+      mapLayersContainer: document.getElementById('map-layers-container'),
+      imageryCanvas: document.getElementById('imagery-canvas'),
+      hillshadeCanvas: document.getElementById('hillshade-canvas'),
+      colorRampCanvas: document.getElementById('color-ramp-canvas'),
+      parcelsSvg: document.getElementById('parcels-svg'),
+      contourSvg: document.getElementById('contour-svg'),
+      siteModelSvg: document.getElementById('site-model-svg'),
+      drawSvg: document.getElementById('draw-svg'),
+      interactionSvg: document.getElementById('interaction-svg'),
+      threeViewport: document.getElementById('three-viewport'),
+      
+      overlayAddressTitle: document.getElementById('overlay-address-title'),
+      overlayCoords: document.getElementById('overlay-coords'),
+      compassBadge: document.getElementById('compass-badge'),
+      compassNeedleSvg: document.getElementById('compass-needle-svg'),
+      btnZoomIn: document.getElementById('btn-zoom-in'),
+      btnZoomOut: document.getElementById('btn-zoom-out'),
+      btnRecenter: document.getElementById('btn-recenter'),
+      scaleBarBox: document.getElementById('scale-bar-box'),
+      scaleBarLabel: document.getElementById('scale-bar-label'),
+      hoverElev: document.getElementById('hover-elev'),
+      hoverSlope: document.getElementById('hover-slope'),
+      loadingOverlay: document.getElementById('loading-overlay'),
+      loadingText: document.getElementById('loading-text'),
+      
+      // Inspector Elements
+      inspectorTitle: document.getElementById('inspector-title'),
+      btnDeleteFeature: document.getElementById('btn-delete-feature'),
+      inspectorEmptyState: document.getElementById('inspector-empty-state'),
+      inspectorAreaFields: document.getElementById('inspector-area-fields'),
+      inspectorExclusionFields: document.getElementById('inspector-exclusion-fields'),
+      areaInputName: document.getElementById('area-input-name'),
+      areaSelectKind: document.getElementById('area-select-kind'),
+      areaSelectPriority: document.getElementById('area-select-priority'),
+      areaSelectSun: document.getElementById('area-select-sun'),
+      areaSelectSoil: document.getElementById('area-select-soil'),
+      areaStatSize: document.getElementById('area-stat-size'),
+      areaStatPerim: document.getElementById('area-stat-perim'),
+      areaStatSlope: document.getElementById('area-stat-slope'),
+      areaStatElev: document.getElementById('area-stat-elev'),
+      areaStatPsi: document.getElementById('area-stat-psi'),
+      
+      exclInputName: document.getElementById('excl-input-name'),
+      exclSelectKind: document.getElementById('excl-select-kind'),
+      exclSliderBuffer: document.getElementById('excl-slider-buffer'),
+      exclValBuffer: document.getElementById('excl-val-buffer'),
+      exclCheckNospray: document.getElementById('excl-check-nospray'),
+      exclCheckNotrench: document.getElementById('excl-check-notrench'),
+      
+      featuresInventoryList: document.getElementById('features-inventory-list'),
+      featuresCount: document.getElementById('features-count'),
+      
+      // Water Source Tab Elements
+      waterSelectType: document.getElementById('water-select-type'),
+      waterInputPsi: document.getElementById('water-input-psi'),
+      waterInputGpm: document.getElementById('water-input-gpm'),
+      waterSelectConfidence: document.getElementById('water-select-confidence'),
+      waterSelectLinesize: document.getElementById('water-select-linesize'),
+      waterSelectMaterial: document.getElementById('water-select-material'),
+      waterInputCoords: document.getElementById('water-input-coords'),
+      btnPlaceWaterSource: document.getElementById('btn-place-water-source'),
+      bannerWellYieldUnknown: document.getElementById('banner-well-yield-unknown'),
+      ctrlInputStations: document.getElementById('ctrl-input-stations'),
+      btnPlaceController: document.getElementById('btn-place-controller'),
+      
+      // Validation Container
+      validationIssueContainer: document.getElementById('validation-issue-container'),
+      validationBadgeCount: document.getElementById('validation-badge-count'),
+      
+      // 3D Controls
+      threeTextureControl: document.getElementById('three-texture-control'),
+      sliderExaggeration: document.getElementById('slider-exaggeration'),
+      valExaggeration: document.getElementById('val-exaggeration'),
+      btnExportStl: document.getElementById('btn-export-stl'),
+      btnExportGlb: document.getElementById('btn-export-glb'),
+      sliderOpacityHillshade: document.getElementById('slider-opacity-hillshade'),
+      valOpacityHillshade: document.getElementById('val-opacity-hillshade'),
+      sliderOpacityContours: document.getElementById('slider-opacity-contours'),
+      valOpacityContours: document.getElementById('val-opacity-contours'),
+      sliderOpacityParcels: document.getElementById('slider-opacity-parcels'),
+      valOpacityParcels: document.getElementById('val-opacity-parcels'),
+      toggleParcelClip: document.getElementById('toggle-parcel-clip')
+    };
+
+    // Math & Coordinates
+    function wgs84ToMercator(lon, lat) {
+      const x = (lon * Math.PI / 180) * WEB_MERCATOR_R;
+      const rad = (lat * Math.PI) / 180;
+      const y = Math.log(Math.tan(Math.PI / 4 + rad / 2)) * WEB_MERCATOR_R;
+      return [x, y];
+    }
+
+    function mercatorToWgs84(x, y) {
+      const lon = (x / WEB_MERCATOR_R) * (180 / Math.PI);
+      const lat = (2 * Math.atan(Math.exp(y / WEB_MERCATOR_R)) - Math.PI / 2) * (180 / Math.PI);
+      return [lon, lat];
+    }
+
+    function pixelToWgs84(px, py, dataset) {
+      const { minX, maxX, minY, maxY } = dataset.bboxMercator;
+      const x_merc = minX + (px / dataset.width) * (maxX - minX);
+      const y_merc = maxY - (py / dataset.height) * (maxY - minY);
+      return mercatorToWgs84(x_merc, y_merc);
+    }
+
+    function wgs84ToPixel(lon, lat, dataset) {
+      const [x_merc, y_merc] = wgs84ToMercator(lon, lat);
+      const { minX, maxX, minY, maxY } = dataset.bboxMercator;
+      const px = ((x_merc - minX) / (maxX - minX)) * dataset.width;
+      const py = ((maxY - y_merc) / (maxY - minY)) * dataset.height;
+      return [px, py];
+    }
+
+    function isPointInRing(pt, ring) {
+      const x = pt[0], y = pt[1];
+      let inside = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const xi = ring[i][0], yi = ring[i][1];
+        const xj = ring[j][0], yj = ring[j][1];
+        const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
+
+    function isPointInGeometry(pt, geometry) {
+      if (!geometry || !geometry.coordinates) return false;
+      if (geometry.type === 'Polygon') {
+        const rings = geometry.coordinates;
+        if (!isPointInRing(pt, rings[0])) return false;
+        for (let i = 1; i < rings.length; i++) {
+          if (isPointInRing(pt, rings[i])) return false;
+        }
+        return true;
+      } else if (geometry.type === 'MultiPolygon') {
+        for (const poly of geometry.coordinates) {
+          if (isPointInRing(pt, poly[0])) return true;
+        }
+      }
+      return false;
+    }
+
+    // Topographic Derived Value Computation for Polygons
+    function computePolygonDerivedStats(geometry, dataset) {
+      if (!geometry || !geometry.coordinates || !dataset) {
+        return { areaSqFt: 0, areaAcres: 0, perimFt: 0, minFt: 0, maxFt: 0, meanFt: 0, reliefFt: 0, slopePct: 0, aspect: "N", psiSpread: 0 };
+      }
+
+      const ring = geometry.type === 'Polygon' ? geometry.coordinates[0] : geometry.coordinates[0][0];
+      if (!ring || ring.length < 3) return { areaSqFt: 0, areaAcres: 0, perimFt: 0, minFt: 0, maxFt: 0, meanFt: 0, reliefFt: 0, slopePct: 0, aspect: "N", psiSpread: 0 };
+
+      // Perimeter & Area
+      let perimFt = 0;
+      for (let i = 0; i < ring.length - 1; i++) {
+        const p1 = ring[i];
+        const p2 = ring[i + 1];
+        const [x1, y1] = wgs84ToPixel(p1[0], p1[1], dataset);
+        const [x2, y2] = wgs84ToPixel(p2[0], p2[1], dataset);
+        perimFt += Math.hypot(x2 - x1, y2 - y1) * dataset.dxGroundFeet;
+      }
+
+      const areaCalc = computeGeometryAcreage(geometry);
+      const areaSqFt = areaCalc.sqft;
+      const areaAcres = areaCalc.acres;
+
+      // Sample raster cells inside polygon
+      const { width, height, rawFeet, rawMeters, dxGroundMeters } = dataset;
+      let minFt = Infinity, maxFt = -Infinity, sumFt = 0, count = 0;
+      let sumSlope = 0;
+      let aspectSin = 0, aspectCos = 0;
+
+      for (let py = 0; py < height; py += 2) {
+        for (let px = 0; px < width; px += 2) {
+          const ptWgs84 = pixelToWgs84(px, py, dataset);
+          if (isPointInGeometry(ptWgs84, geometry)) {
+            const elev = rawFeet[py * width + px];
+            if (!isNaN(elev)) {
+              if (elev < minFt) minFt = elev;
+              if (elev > maxFt) maxFt = elev;
+              sumFt += elev;
+              count++;
+
+              // Slope & Aspect calculation (Horn's gradient)
+              const c_prev = Math.max(0, px - 1);
+              const c_next = Math.min(width - 1, px + 1);
+              const r_prev = Math.max(0, py - 1);
+              const r_next = Math.min(height - 1, py + 1);
+
+              const dz_dx = (rawMeters[py * width + c_next] - rawMeters[py * width + c_prev]) / (2 * dxGroundMeters);
+              const dz_dy = (rawMeters[r_next * width + px] - rawMeters[r_prev * width + px]) / (2 * dxGroundMeters);
+              const grad = Math.sqrt(dz_dx * dz_dx + dz_dy * dz_dy);
+              sumSlope += grad * 100;
+
+              const asp = Math.atan2(dz_dx, -dz_dy);
+              aspectSin += Math.sin(asp);
+              aspectCos += Math.cos(asp);
+            }
+          }
+        }
+      }
+
+      if (count === 0 || !isFinite(minFt)) {
+        minFt = dataset.minFeet;
+        maxFt = dataset.maxFeet;
+        sumFt = dataset.meanFeet;
+        count = 1;
+      }
+
+      const meanFt = sumFt / count;
+      const reliefFt = Math.max(0, maxFt - minFt);
+      const slopePct = sumSlope / (count || 1);
+      const psiSpread = reliefFt * PSI_PER_VERTICAL_FOOT;
+
+      const meanAspectRad = Math.atan2(aspectSin, aspectCos);
+      let aspectDeg = (meanAspectRad * 180 / Math.PI + 360) % 360;
+      const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+      const aspectStr = directions[Math.round(aspectDeg / 45) % 8];
+
+      return {
+        areaSqFt: Math.round(areaSqFt),
+        areaAcres: Number(areaAcres.toFixed(2)),
+        perimFt: Math.round(perimFt),
+        minFt: Number(minFt.toFixed(1)),
+        maxFt: Number(maxFt.toFixed(1)),
+        meanFt: Number(meanFt.toFixed(1)),
+        reliefFt: Number(reliefFt.toFixed(1)),
+        slopePct: Number(slopePct.toFixed(1)),
+        aspect: aspectStr,
+        psiSpread: Number(psiSpread.toFixed(1))
+      };
+    }
+
+    function computeGeometryAcreage(geometry) {
+      if (!geometry || !geometry.coordinates) return { acres: 0, sqft: 0 };
+      const R = WEB_MERCATOR_R;
+      const polys = geometry.type === 'Polygon' ? [geometry.coordinates] : (geometry.type === 'MultiPolygon' ? geometry.coordinates : []);
+      let totalAreaM2 = 0;
+
+      for (const rings of polys) {
+        if (!rings || rings.length === 0) continue;
+        for (let rIdx = 0; rIdx < rings.length; rIdx++) {
+          const ring = rings[rIdx];
+          if (ring.length < 3) continue;
+
+          let latSum = 0;
+          for (const pt of ring) latSum += pt[1];
+          const meanLatRad = (latSum / ring.length) * Math.PI / 180;
+          const cosLat = Math.cos(meanLatRad);
+
+          let ringArea = 0;
+          for (let i = 0; i < ring.length - 1; i++) {
+            const p1 = ring[i];
+            const p2 = ring[i + 1];
+            const x1 = (p1[0] * Math.PI / 180) * R * cosLat;
+            const y1 = (p1[1] * Math.PI / 180) * R;
+            const x2 = (p2[0] * Math.PI / 180) * R * cosLat;
+            const y2 = (p2[1] * Math.PI / 180) * R;
+            ringArea += (x1 * y2 - x2 * y1);
+          }
+          ringArea = Math.abs(ringArea) / 2.0;
+          if (rIdx === 0) totalAreaM2 += ringArea;
+          else totalAreaM2 -= ringArea;
+        }
+      }
+
+      const sqft = totalAreaM2 * 10.7639104;
+      const acres = sqft / 43560;
+      return { acres: Math.max(0, acres), sqft: Math.max(0, sqft) };
+    }
+
+    // Snapping Engine
+    function findSnapTarget(px, py, tolerancePx = 14) {
+      if (!appState.dataset) return null;
+      let closest = null;
+      let minD = tolerancePx;
+
+      // 1. Snap to parcel vertices & edges
+      if (appState.parcelsGeoJSON) {
+        for (const feat of appState.parcelsGeoJSON.features) {
+          const poly = feat.geometry.type === 'Polygon' ? feat.geometry.coordinates : feat.geometry.coordinates[0];
+          for (const ring of poly) {
+            for (const [lon, lat] of ring) {
+              const [vPx, vPy] = wgs84ToPixel(lon, lat, appState.dataset);
+              const d = Math.hypot(vPx - px, vPy - py);
+              if (d < minD) {
+                minD = d;
+                closest = { px: vPx, py: vPy, lon, lat, type: "parcel_vertex" };
+              }
+            }
+          }
+        }
+      }
+
+      // 2. Snap to existing authored area vertices
+      for (const area of siteModel.areas) {
+        if (!area.geometry?.coordinates) continue;
+        for (const [lon, lat] of area.geometry.coordinates[0]) {
+          const [vPx, vPy] = wgs84ToPixel(lon, lat, appState.dataset);
+          const d = Math.hypot(vPx - px, vPy - py);
+          if (d < minD) {
+            minD = d;
+            closest = { px: vPx, py: vPy, lon, lat, type: "area_vertex" };
+          }
+        }
+      }
+
+      return closest;
+    }
+
+    // Undo / Redo History Stack
+    function pushHistoryState() {
+      const snapshot = JSON.stringify(siteModel);
+      appState.undoStack.push(snapshot);
+      if (appState.undoStack.length > 50) appState.undoStack.shift();
+      appState.redoStack = [];
+      updateUndoRedoButtons();
+      saveToLocalStorage();
+      validateSiteModel();
+    }
+
+    function undo() {
+      if (appState.undoStack.length === 0) return;
+      const current = JSON.stringify(siteModel);
+      appState.redoStack.push(current);
+      const prev = JSON.parse(appState.undoStack.pop());
+      Object.assign(siteModel, prev);
+      recalculateAllDerivedStats();
+      renderSiteModel();
+      updateInspector();
+      updateUndoRedoButtons();
+      saveToLocalStorage();
+      validateSiteModel();
+    }
+
+    function redo() {
+      if (appState.redoStack.length === 0) return;
+      const current = JSON.stringify(siteModel);
+      appState.undoStack.push(current);
+      const next = JSON.parse(appState.redoStack.pop());
+      Object.assign(siteModel, next);
+      recalculateAllDerivedStats();
+      renderSiteModel();
+      updateInspector();
+      updateUndoRedoButtons();
+      saveToLocalStorage();
+      validateSiteModel();
+    }
+
+    function updateUndoRedoButtons() {
+      elements.btnUndo.disabled = appState.undoStack.length === 0;
+      elements.btnRedo.disabled = appState.redoStack.length === 0;
+    }
+
+    // Continuous Advisory Validation Engine
+    function validateSiteModel() {
+      const issues = [];
+
+      // 1. Water Source checks
+      if (!siteModel.water_source.location) {
+        issues.push({ type: "warn", msg: "Water source location pin is unset on the property." });
+      }
+      if (siteModel.water_source.safe_yield_gpm === null || siteModel.water_source.yield_confidence === "unknown") {
+        issues.push({ type: "warn", msg: "Well yield unknown — capacity checks unreliable until flow rate is measured." });
+        elements.bannerWellYieldUnknown.style.display = "flex";
+      } else {
+        elements.bannerWellYieldUnknown.style.display = "none";
+      }
+
+      // 2. Controller check
+      if (!siteModel.controller.location && siteModel.areas.length > 0) {
+        issues.push({ type: "warn", msg: "Controller location pin has not been placed." });
+      }
+
+      // 3. Area Relief & Zoning checks
+      for (const area of siteModel.areas) {
+        if (area.relief_ft > 20) {
+          issues.push({ type: "warn", msg: `Zone "${area.name}" has ${area.relief_ft} ft relief (${(area.relief_ft * 0.433).toFixed(1)} psi delta) — will likely need pressure regulation or dedicated sub-zones.` });
+        }
+      }
+
+      // 4. Overlap & Parcel Boundary checks
+      if (appState.highlightedParcel) {
+        for (const area of siteModel.areas) {
+          const ring = area.geometry.coordinates[0];
+          let outsideCount = 0;
+          for (const pt of ring) {
+            if (!isPointInGeometry(pt, appState.highlightedParcel.geometry)) outsideCount++;
+          }
+          if (outsideCount > 0) {
+            issues.push({ type: "error", msg: `Zone "${area.name}" extends beyond property parcel boundary.` });
+          }
+        }
+      }
+
+      if (issues.length === 0) {
+        issues.push({ type: "ok", msg: "All site model geometries and infrastructure checks passed." });
+      }
+
+      // Render issues
+      const container = elements.validationIssueContainer;
+      container.innerHTML = '';
+      issues.forEach(iss => {
+        const div = document.createElement('div');
+        div.className = `validation-issue-item ${iss.type}`;
+        div.innerHTML = `<span>${iss.type === 'error' ? '🚫' : (iss.type === 'warn' ? '⚠️' : '✅')}</span><span>${iss.msg}</span>`;
+        container.appendChild(div);
+      });
+
+      const warnCount = issues.filter(i => i.type !== 'ok').length;
+      elements.validationBadgeCount.textContent = warnCount > 0 ? `${warnCount} Advisory` : "0 Issues";
+    }
+
+    // Recalculate derived DEM stats for all areas
+    function recalculateAllDerivedStats() {
+      if (!appState.dataset) return;
+      for (const area of siteModel.areas) {
+        const stats = computePolygonDerivedStats(area.geometry, appState.dataset);
+        area.area_sqft = stats.areaSqFt;
+        area.slope_pct = stats.slopePct;
+        area.elev_min_ft = stats.minFt;
+        area.elev_max_ft = stats.maxFt;
+        area.relief_ft = stats.reliefFt;
+        area.aspect = stats.aspect;
+      }
+    }
+
+    // Render Site Model in 2D SVG
+    function renderSiteModel() {
+      const svg = elements.siteModelSvg;
+      svg.innerHTML = '';
+      if (!appState.dataset) return;
+
+      const dataset = appState.dataset;
+
+      // 1. Render Exclusions (Buffer Halos + Inner Polygons/Lines)
+      for (const excl of siteModel.exclusions) {
+        const isSelected = appState.selectedFeatureId === excl.id;
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+        // Buffer Halo if buffer_ft > 0
+        if (excl.buffer_ft > 0 && excl.geometry.type === 'Polygon') {
+          const bufferPx = (excl.buffer_ft / dataset.dxGroundFeet);
+          const pathD = geojsonToSvgPath(excl.geometry, dataset);
+          if (pathD) {
+            const halo = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            halo.setAttribute("d", pathD);
+            halo.setAttribute("class", "exclusion-buffer-halo");
+            halo.setAttribute("stroke-width", Math.max(4, bufferPx * 2));
+            g.appendChild(halo);
+          }
+        }
+
+        // Feature Path
+        if (excl.geometry.type === 'Polygon') {
+          const pathD = geojsonToSvgPath(excl.geometry, dataset);
+          if (pathD) {
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", pathD);
+            path.setAttribute("class", "exclusion-poly");
+            if (isSelected) path.setAttribute("stroke-width", "3.5");
+            g.appendChild(path);
+          }
+        } else if (excl.geometry.type === 'LineString') {
+          const coords = excl.geometry.coordinates;
+          let d = '';
+          coords.forEach((pt, i) => {
+            const [px, py] = wgs84ToPixel(pt[0], pt[1], dataset);
+            d += (i === 0 ? `M${px},${py}` : `L${px},${py}`);
+          });
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute("d", d);
+          path.setAttribute("class", "exclusion-line");
+          if (isSelected) path.setAttribute("stroke-width", "4.5");
+          g.appendChild(path);
+        }
+
+        svg.appendChild(g);
+      }
+
+      // 2. Render Areas
+      for (const area of siteModel.areas) {
+        const isSelected = appState.selectedFeatureId === area.id;
+        const pathD = geojsonToSvgPath(area.geometry, dataset);
+        if (pathD) {
+          const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute("d", pathD);
+          path.setAttribute("class", `area-poly-${area.kind || 'turf'}`);
+          if (isSelected) {
+            path.setAttribute("stroke-width", "3.8");
+            path.setAttribute("filter", "drop-shadow(0 0 6px rgba(56, 189, 248, 0.7))");
+          }
+          g.appendChild(path);
+
+          // Label center
+          const ring = area.geometry.coordinates[0];
+          let cx = 0, cy = 0;
+          ring.forEach(pt => {
+            const [px, py] = wgs84ToPixel(pt[0], pt[1], dataset);
+            cx += px; cy += py;
+          });
+          cx /= ring.length; cy /= ring.length;
+
+          const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          text.setAttribute("x", cx);
+          text.setAttribute("y", cy);
+          text.setAttribute("class", "contour-label");
+          text.textContent = area.name;
+          g.appendChild(text);
+
+          svg.appendChild(g);
+        }
+      }
+
+      // 3. Render Infrastructure Pins
+      if (siteModel.water_source.location) {
+        const [wPx, wPy] = wgs84ToPixel(siteModel.water_source.location[0], siteModel.water_source.location[1], dataset);
+        renderMarkerPin(svg, wPx, wPy, "💧", "#0284c7", "Water Supply");
+      }
+
+      if (siteModel.controller.location) {
+        const [cPx, cPy] = wgs84ToPixel(siteModel.controller.location[0], siteModel.controller.location[1], dataset);
+        renderMarkerPin(svg, cPx, cPy, "⚡", "#818cf8", "Controller");
+      }
+
+      // 4. Render Vertex Edit Handles if edit mode active
+      renderVertexEditHandles();
+      updateFeaturesInventory();
+
+      if (appState.viewMode === "3d" && appState.three.isInitialized) {
+        build3DTerrainMesh(dataset);
+      }
+    }
+
+    function renderMarkerPin(svg, x, y, icon, color, label) {
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("transform", `translate(${x}, ${y})`);
+      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      circle.setAttribute("r", "12");
+      circle.setAttribute("fill", color);
+      circle.setAttribute("stroke", "#ffffff");
+      circle.setAttribute("stroke-width", "2");
+      circle.setAttribute("filter", "drop-shadow(0 2px 5px rgba(0,0,0,0.6))");
+      
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("y", "4");
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("font-size", "11");
+      text.textContent = icon;
+
+      g.appendChild(circle);
+      g.appendChild(text);
+      svg.appendChild(g);
+    }
+
+    function renderVertexEditHandles() {
+      const svg = elements.drawSvg;
+      svg.innerHTML = '';
+      if (appState.activeTool !== 'edit-vertices' || !appState.selectedFeatureId || !appState.dataset) return;
+
+      const feat = siteModel.areas.find(a => a.id === appState.selectedFeatureId) || siteModel.exclusions.find(e => e.id === appState.selectedFeatureId);
+      if (!feat || !feat.geometry?.coordinates) return;
+
+      const ring = feat.geometry.type === 'Polygon' ? feat.geometry.coordinates[0] : feat.geometry.coordinates;
+
+      for (let i = 0; i < ring.length - (feat.geometry.type === 'Polygon' ? 1 : 0); i++) {
+        const [lon, lat] = ring[i];
+        const [px, py] = wgs84ToPixel(lon, lat, appState.dataset);
+
+        // Vertex Handle
+        const handle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        handle.setAttribute("cx", px);
+        handle.setAttribute("cy", py);
+        handle.setAttribute("r", "6");
+        handle.setAttribute("class", "vertex-handle");
+        handle.setAttribute("data-vertex-index", i);
+        svg.appendChild(handle);
+
+        // Segment Midpoint Insert Handle
+        const nextIdx = (i + 1) % ring.length;
+        const [nextLon, nextLat] = ring[nextIdx];
+        const [nPx, nPy] = wgs84ToPixel(nextLon, nextLat, appState.dataset);
+        const midX = (px + nPx) / 2;
+        const midY = (py + nPy) / 2;
+
+        const midHandle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        midHandle.setAttribute("cx", midX);
+        midHandle.setAttribute("cy", midY);
+        midHandle.setAttribute("r", "4.5");
+        midHandle.setAttribute("class", "vertex-midpoint-handle");
+        midHandle.setAttribute("data-insert-index", i + 1);
+        svg.appendChild(midHandle);
+      }
+    }
+
+    function updateFeaturesInventory() {
+      const list = elements.featuresInventoryList;
+      list.innerHTML = '';
+      elements.featuresCount.textContent = `${siteModel.areas.length} areas, ${siteModel.exclusions.length} exclusions`;
+
+      siteModel.areas.forEach(area => {
+        const isSelected = appState.selectedFeatureId === area.id;
+        const row = document.createElement('div');
+        row.className = `feature-item-row ${isSelected ? 'selected' : ''}`;
+        row.innerHTML = `
+          <div class="feature-item-left">
+            <span class="feature-color-dot" style="background: #10b981;"></span>
+            <span>${area.name}</span>
+          </div>
+          <div class="feature-item-meta">${area.area_sqft ? area.area_sqft.toLocaleString() + ' sq ft' : ''}</div>
+        `;
+        row.addEventListener('click', () => selectFeature(area.id, "area"));
+        list.appendChild(row);
+      });
+
+      siteModel.exclusions.forEach(excl => {
+        const isSelected = appState.selectedFeatureId === excl.id;
+        const row = document.createElement('div');
+        row.className = `feature-item-row ${isSelected ? 'selected' : ''}`;
+        row.innerHTML = `
+          <div class="feature-item-left">
+            <span class="feature-color-dot" style="background: #f43f5e;"></span>
+            <span>${excl.name} (${excl.kind})</span>
+          </div>
+          <div class="feature-item-meta">${excl.buffer_ft}ft halo</div>
+        `;
+        row.addEventListener('click', () => selectFeature(excl.id, "exclusion"));
+        list.appendChild(row);
+      });
+    }
+
+    function selectFeature(id, type) {
+      appState.selectedFeatureId = id;
+      appState.selectedFeatureType = type;
+      updateInspector();
+      renderSiteModel();
+    }
+
+    function updateInspector() {
+      if (!appState.selectedFeatureId) {
+        elements.inspectorEmptyState.style.display = "block";
+        elements.inspectorAreaFields.style.display = "none";
+        elements.inspectorExclusionFields.style.display = "none";
+        elements.btnDeleteFeature.style.display = "none";
+        elements.inspectorTitle.textContent = "Selected Feature";
+        return;
+      }
+
+      elements.inspectorEmptyState.style.display = "none";
+      elements.btnDeleteFeature.style.display = "inline-flex";
+
+      if (appState.selectedFeatureType === "area") {
+        const area = siteModel.areas.find(a => a.id === appState.selectedFeatureId);
+        if (!area) return;
+
+        elements.inspectorTitle.textContent = `Area: ${area.name}`;
+        elements.inspectorAreaFields.style.display = "flex";
+        elements.inspectorExclusionFields.style.display = "none";
+
+        elements.areaInputName.value = area.name;
+        elements.areaSelectKind.value = area.kind || "turf";
+        elements.areaSelectPriority.value = area.priority || "must";
+        elements.areaSelectSun.value = area.sun || "full";
+        elements.areaSelectSoil.value = area.soil || "loam";
+
+        elements.areaStatSize.textContent = `${area.area_sqft?.toLocaleString() || 0} sq ft (${(area.area_sqft / 43560).toFixed(2)} ac)`;
+        elements.areaStatPerim.textContent = `${area.perim_ft || 0} ft`;
+        elements.areaStatSlope.textContent = `${area.slope_pct || 0}% (${area.aspect || 'N'})`;
+        elements.areaStatElev.textContent = `${area.elev_min_ft || 0}' – ${area.elev_max_ft || 0}'`;
+        elements.areaStatPsi.textContent = `${area.relief_ft || 0} ft relief = ${(area.relief_ft * 0.433 || 0).toFixed(1)} psi spread`;
+      } else if (appState.selectedFeatureType === "exclusion") {
+        const excl = siteModel.exclusions.find(e => e.id === appState.selectedFeatureId);
+        if (!excl) return;
+
+        elements.inspectorTitle.textContent = `Exclusion: ${excl.name}`;
+        elements.inspectorAreaFields.style.display = "none";
+        elements.inspectorExclusionFields.style.display = "flex";
+
+        elements.exclInputName.value = excl.name;
+        elements.exclSelectKind.value = excl.kind;
+        elements.exclSliderBuffer.value = excl.buffer_ft || 0;
+        elements.exclValBuffer.textContent = `${excl.buffer_ft || 0} ft`;
+        elements.exclCheckNospray.checked = excl.no_spray !== false;
+        elements.exclCheckNotrench.checked = excl.no_trench !== false;
+      }
+    }
+
+    // Tool Switcher & Auto-dimming
+    function setActiveTool(tool) {
+      appState.activeTool = tool;
+      document.querySelectorAll('#drawing-toolbar .tool-btn[data-tool]').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-tool') === tool);
+      });
+
+      // Auto-dim layers during drawing workflow for aerial legibility
+      const isDrawingActive = tool !== 'pan';
+      elements.hillshadeCanvas.style.opacity = isDrawingActive ? '0.12' : (appState.dataset ? elements.sliderOpacityHillshade.value / 100 : '0.40');
+      elements.contourSvg.style.opacity = isDrawingActive ? '0.20' : (appState.dataset ? elements.sliderOpacityContours.value / 100 : '1.0');
+
+      elements.mapStage.className = `map-stage ${tool === 'pan' ? 'cursor-pan' : 'cursor-crosshair'}`;
+      cancelCurrentDrawing();
+      renderVertexEditHandles();
+    }
+
+    function cancelCurrentDrawing() {
+      appState.isDrawing = false;
+      appState.drawingPoints = [];
+      appState.drawingGeoPoints = [];
+      elements.drawSvg.innerHTML = '';
+      elements.drawLivePill.style.display = 'none';
+    }
+
+    // 2D Drawing & Pointer Event Handlers
+    function initDrawingEngine() {
+      const stage = elements.mapStage;
+
+      stage.addEventListener('pointerdown', (e) => {
+        if (appState.viewMode === "3d") return;
+        const rect = stage.getBoundingClientRect();
+        let px = ((e.clientX - rect.left) / rect.width) * 512;
+        let py = ((e.clientY - rect.top) / rect.height) * 512;
+
+        if (e.shiftKey || appState.activeTool.startsWith('draw')) {
+          const snap = findSnapTarget(px, py);
+          if (snap) { px = snap.px; py = snap.py; }
+        }
+
+        // Vertex Edit Mode Dragging
+        if (appState.activeTool === 'edit-vertices') {
+          const target = e.target;
+          if (target.classList.contains('vertex-handle')) {
+            appState.editVertexIndex = parseInt(target.getAttribute('data-vertex-index'), 10);
+            appState.isDraggingVertex = true;
+            stage.setPointerCapture(e.pointerId);
+            return;
+          } else if (target.classList.contains('vertex-midpoint-handle')) {
+            const insertIdx = parseInt(target.getAttribute('data-insert-index'), 10);
+            insertVertexAt(insertIdx, px, py);
+            return;
+          }
+        }
+
+        // Normal Pan Mode
+        if (appState.activeTool === 'pan') {
+          appState.drag.isDragging = true;
+          appState.drag.hasMoved = false;
+          appState.drag.startX = e.clientX;
+          appState.drag.startY = e.clientY;
+          stage.classList.add('is-dragging');
+          stage.setPointerCapture(e.pointerId);
+          return;
+        }
+
+        // Point Placement (Water Source / Controller)
+        if (appState.activeTool === 'place-water') {
+          const [lon, lat] = pixelToWgs84(px, py, appState.dataset);
+          pushHistoryState();
+          siteModel.water_source.location = [lon, lat];
+          elements.waterInputCoords.value = `${lat.toFixed(5)}°, ${lon.toFixed(5)}°`;
+          setActiveTool('pan');
+          renderSiteModel();
+          return;
+        } else if (appState.activeTool === 'place-controller') {
+          const [lon, lat] = pixelToWgs84(px, py, appState.dataset);
+          pushHistoryState();
+          siteModel.controller.location = [lon, lat];
+          setActiveTool('pan');
+          renderSiteModel();
+          return;
+        }
+
+        // Shape Drawing
+        const [lon, lat] = pixelToWgs84(px, py, appState.dataset);
+
+        if (!appState.isDrawing) {
+          appState.isDrawing = true;
+          appState.drawingPoints = [[px, py]];
+          appState.drawingGeoPoints = [[lon, lat]];
+        } else {
+          // Check for polygon closure (click near start point)
+          if (appState.drawingPoints.length >= 3 && Math.hypot(px - appState.drawingPoints[0][0], py - appState.drawingPoints[0][1]) < 16) {
+            finishDrawingShape();
+          } else {
+            appState.drawingPoints.push([px, py]);
+            appState.drawingGeoPoints.push([lon, lat]);
+          }
+        }
+      });
+
+      stage.addEventListener('pointermove', (e) => {
+        if (appState.viewMode === "3d") return;
+        const rect = stage.getBoundingClientRect();
+        let px = ((e.clientX - rect.left) / rect.width) * 512;
+        let py = ((e.clientY - rect.top) / rect.height) * 512;
+
+        // Snapping check
+        const snap = findSnapTarget(px, py);
+        if (snap && (e.shiftKey || appState.activeTool.startsWith('draw'))) {
+          px = snap.px; py = snap.py;
+        }
+
+        // Vertex dragging
+        if (appState.isDraggingVertex && appState.editVertexIndex >= 0) {
+          moveVertexTo(appState.editVertexIndex, px, py);
+          return;
+        }
+
+        // Pan dragging
+        if (appState.drag.isDragging && appState.activeTool === 'pan') {
+          const dx = e.clientX - appState.drag.startX;
+          const dy = e.clientY - appState.drag.startY;
+          appState.drag.currentDx = dx;
+          appState.drag.currentDy = dy;
+          if (Math.hypot(dx, dy) > 4) {
+            appState.drag.hasMoved = true;
+            elements.mapLayersContainer.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+          }
+          return;
+        }
+
+        // Drawing rubberband preview
+        if (appState.isDrawing) {
+          renderDrawingPreview(px, py);
+        }
+
+        // Live cursor elevation & slope readout
+        if (appState.dataset) {
+          const elevFt = sampleElevationAtPixel(px, py, appState.dataset);
+          elements.hoverElev.textContent = `${elevFt.toFixed(1)} ft`;
+        }
+      });
+
+      stage.addEventListener('pointerup', (e) => {
+        if (appState.viewMode === "3d") return;
+
+        if (appState.isDraggingVertex) {
+          appState.isDraggingVertex = false;
+          appState.editVertexIndex = -1;
+          pushHistoryState();
+          recalculateAllDerivedStats();
+          renderSiteModel();
+          updateInspector();
+          return;
+        }
+
+        if (appState.drag.isDragging && appState.activeTool === 'pan') {
+          appState.drag.isDragging = false;
+          stage.classList.remove('is-dragging');
+          elements.mapLayersContainer.style.transform = '';
+
+          if (appState.drag.hasMoved && Math.hypot(appState.drag.currentDx, appState.drag.currentDy) > 5 && appState.dataset) {
+            const rect = stage.getBoundingClientRect();
+            const dxRatio = appState.drag.currentDx / rect.width;
+            const dyRatio = appState.drag.currentDy / rect.height;
+            const { minX, maxX, minY, maxY } = appState.dataset.bboxMercator;
+            const newCenterX = ((minX + maxX) / 2) - dxRatio * (maxX - minX);
+            const newCenterY = ((minY + maxY) / 2) + dyRatio * (maxY - minY);
+            const [newLon, newLat] = mercatorToWgs84(newCenterX, newCenterY);
+            appState.lat = newLat;
+            appState.lon = newLon;
+            loadCoordinatesPipeline(appState.lat, appState.lon, appState.radiusMeters);
+          }
+        }
+      });
+
+      // Right-click to delete vertex in edit mode
+      stage.addEventListener('contextmenu', (e) => {
+        if (appState.activeTool === 'edit-vertices') {
+          e.preventDefault();
+          const target = e.target;
+          if (target.classList.contains('vertex-handle')) {
+            const vIdx = parseInt(target.getAttribute('data-vertex-index'), 10);
+            deleteVertexAt(vIdx);
+          }
+        }
+      });
+    }
+
+    function renderDrawingPreview(currPx, currPy) {
+      const svg = elements.drawSvg;
+      svg.innerHTML = '';
+      if (!appState.isDrawing || appState.drawingPoints.length === 0) return;
+
+      const pts = [...appState.drawingPoints, [currPx, currPy]];
+      let d = '';
+
+      if (appState.activeTool === 'draw-rectangle') {
+        const p0 = appState.drawingPoints[0];
+        d = `M${p0[0]},${p0[1]} L${currPx},${p0[1]} L${currPx},${currPy} L${p0[0]},${currPy} Z`;
+      } else {
+        pts.forEach((pt, i) => {
+          d += (i === 0 ? `M${pt[0]},${pt[1]}` : `L${pt[0]},${pt[1]}`);
+        });
+      }
+
+      const previewPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      previewPath.setAttribute("d", d);
+      previewPath.setAttribute("fill", appState.activeTool === 'draw-exclusion-poly' ? "rgba(244, 63, 94, 0.2)" : "rgba(56, 189, 248, 0.2)");
+      previewPath.setAttribute("stroke", appState.activeTool === 'draw-exclusion-poly' ? "#f43f5e" : "#38bdf8");
+      previewPath.setAttribute("stroke-width", "2");
+      previewPath.setAttribute("stroke-dasharray", "5 3");
+      svg.appendChild(previewPath);
+
+      // Live metrics pill
+      const pill = elements.drawLivePill;
+      pill.style.display = 'block';
+      pill.style.left = `${currPx + 15}px`;
+      pill.style.top = `${currPy + 15}px`;
+
+      let perim = 0;
+      for (let i = 0; i < pts.length - 1; i++) {
+        perim += Math.hypot(pts[i+1][0] - pts[i][0], pts[i+1][1] - pts[i][1]) * appState.dataset.dxGroundFeet;
+      }
+      pill.textContent = `Perimeter: ${Math.round(perim)} ft | Double-click or click start to close`;
+    }
+
+    function finishDrawingShape() {
+      if (appState.drawingGeoPoints.length < 3) {
+        cancelCurrentDrawing();
+        return;
+      }
+
+      pushHistoryState();
+      const closedGeo = [...appState.drawingGeoPoints, appState.drawingGeoPoints[0]];
+      const newId = `feature_${Date.now()}`;
+
+      if (appState.activeTool === 'draw-exclusion-poly') {
+        const excl = {
+          id: newId,
+          name: `Exclusion ${siteModel.exclusions.length + 1}`,
+          geometry: { type: "Polygon", coordinates: [closedGeo] },
+          kind: "structure",
+          buffer_ft: 5,
+          no_spray: true,
+          no_trench: true
+        };
+        siteModel.exclusions.push(excl);
+        selectFeature(excl.id, "exclusion");
+      } else if (appState.activeTool === 'draw-line') {
+        const excl = {
+          id: newId,
+          name: `Line Exclusion ${siteModel.exclusions.length + 1}`,
+          geometry: { type: "LineString", coordinates: appState.drawingGeoPoints },
+          kind: "utility",
+          buffer_ft: 3,
+          no_spray: true,
+          no_trench: true
+        };
+        siteModel.exclusions.push(excl);
+        selectFeature(excl.id, "exclusion");
+      } else {
+        // Draw Area
+        const area = {
+          id: newId,
+          name: `Zone ${siteModel.areas.length + 1}`,
+          geometry: { type: "Polygon", coordinates: [closedGeo] },
+          kind: "turf",
+          priority: "must",
+          sun: "full",
+          soil: "loam",
+          slope_pct: 0,
+          elev_min_ft: 0,
+          elev_max_ft: 0,
+          area_sqft: 0
+        };
+        siteModel.areas.push(area);
+        selectFeature(area.id, "area");
+      }
+
+      cancelCurrentDrawing();
+      recalculateAllDerivedStats();
+      renderSiteModel();
+      setActiveTool('pan');
+    }
+
+    function moveVertexTo(idx, px, py) {
+      const feat = siteModel.areas.find(a => a.id === appState.selectedFeatureId) || siteModel.exclusions.find(e => e.id === appState.selectedFeatureId);
+      if (!feat) return;
+
+      const [lon, lat] = pixelToWgs84(px, py, appState.dataset);
+      const ring = feat.geometry.type === 'Polygon' ? feat.geometry.coordinates[0] : feat.geometry.coordinates;
+
+      ring[idx] = [lon, lat];
+      if (feat.geometry.type === 'Polygon' && idx === 0) {
+        ring[ring.length - 1] = [lon, lat]; // Keep polygon closed
+      }
+
+      renderSiteModel();
+    }
+
+    function insertVertexAt(insertIdx, px, py) {
+      pushHistoryState();
+      const feat = siteModel.areas.find(a => a.id === appState.selectedFeatureId) || siteModel.exclusions.find(e => e.id === appState.selectedFeatureId);
+      if (!feat) return;
+
+      const [lon, lat] = pixelToWgs84(px, py, appState.dataset);
+      const ring = feat.geometry.type === 'Polygon' ? feat.geometry.coordinates[0] : feat.geometry.coordinates;
+
+      ring.splice(insertIdx, 0, [lon, lat]);
+      recalculateAllDerivedStats();
+      renderSiteModel();
+      updateInspector();
+    }
+
+    function deleteVertexAt(vIdx) {
+      const feat = siteModel.areas.find(a => a.id === appState.selectedFeatureId) || siteModel.exclusions.find(e => e.id === appState.selectedFeatureId);
+      if (!feat) return;
+
+      const ring = feat.geometry.type === 'Polygon' ? feat.geometry.coordinates[0] : feat.geometry.coordinates;
+      if (ring.length <= 4 && feat.geometry.type === 'Polygon') {
+        alert("A polygon must have at least 3 vertices.");
+        return;
+      }
+
+      pushHistoryState();
+      ring.splice(vIdx, 1);
+      if (feat.geometry.type === 'Polygon' && vIdx === 0) {
+        ring[ring.length - 1] = ring[0];
+      }
+
+      recalculateAllDerivedStats();
+      renderSiteModel();
+      updateInspector();
+    }
+
+    // Persistence & IO
+    function saveToLocalStorage() {
+      try {
+        localStorage.setItem("skyhook_site_model", JSON.stringify(siteModel));
+        elements.autosaveStatus.textContent = "✓ Saved";
+        setTimeout(() => { elements.autosaveStatus.textContent = "✓ Synced"; }, 1500);
+      } catch (e) {}
+    }
+
+    function loadFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem("skyhook_site_model");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.version === 1) {
+            Object.assign(siteModel, parsed);
+          }
+        }
+      } catch (e) {}
+    }
+
+    function downloadSiteModelJson() {
+      const blob = new Blob([JSON.stringify(siteModel, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const cleanAddr = (siteModel.site.address || "site").replace(/[^a-zA-Z0-9]/g, "_").toLowerCase().slice(0, 30);
+      a.href = url;
+      a.download = `skyhook_sitemodel_${cleanAddr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function importSiteModelFile(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          // Validate required schema shape
+          if (!parsed || parsed.version !== 1 || !parsed.site || !parsed.water_source || !Array.isArray(parsed.areas)) {
+            throw new Error("Invalid Site Model JSON format: Missing required schema root properties.");
+          }
+
+          pushHistoryState();
+          Object.assign(siteModel, parsed);
+          if (siteModel.site.address) {
+            elements.addressInput.value = siteModel.site.address;
+          }
+          if (siteModel.site.centroid) {
+            appState.lon = siteModel.site.centroid[0];
+            appState.lat = siteModel.site.centroid[1];
+          }
+
+          loadCoordinatesPipeline(appState.lat, appState.lon, appState.radiusMeters);
+        } catch (err) {
+          alert(`Failed to import Site Model: ${err.message}`);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Load Heads Performance Database
+    async function loadHeadsDatabase() {
+      try {
+        const resp = await fetch("heads.json");
+        if (resp.ok) {
+          appState.headsDatabase = await resp.json();
+          renderHeadsTable();
+        }
+      } catch (e) {
+        console.warn("Could not load heads.json:", e);
+      }
+    }
+
+    function renderHeadsTable() {
+      const tbody = elements.headsTableBody;
+      tbody.innerHTML = '';
+
+      const query = elements.headsSearchInput.value.toLowerCase();
+      const fType = elements.headsFilterType.value;
+      const fBrand = elements.headsFilterBrand.value;
+
+      const filtered = appState.headsDatabase.filter(h => {
+        if (fType !== "all" && h.type !== fType) return false;
+        if (fBrand !== "all" && h.brand !== fBrand) return false;
+        if (query && !`${h.brand} ${h.model} ${h.notes}`.toLowerCase().includes(query)) return false;
+        return true;
+      });
+
+      filtered.forEach(h => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${h.brand}</strong><br><span style="font-size: 0.7rem; color: var(--text-secondary);">${h.model}</span></td>
+          <td><span class="layer-badge">${h.type}</span></td>
+          <td><strong>${h.radius_ft}'</strong></td>
+          <td>${h.arc_deg}°</td>
+          <td><strong>${h.gpm}</strong></td>
+          <td>${h.pressure_psi} psi</td>
+          <td>${h.precip_rate_in_hr} in/hr</td>
+          <td><a href="${h.source_url}" target="_blank" style="color: var(--accent-sky); font-size: 0.7rem;">Specs ↗</a></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 3D Terrain Diorama & Mesh Generator
+    function initThreeScene() {
+      if (appState.three.isInitialized) return;
+
+      const container = elements.threeViewport;
+      const width = container.clientWidth || 512;
+      const height = container.clientHeight || 512;
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0c1017);
+
+      const camera = new THREE.PerspectiveCamera(40, width / height, 1, 5000);
+      camera.position.set(0, -280, 240);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+      controls.maxPolarAngle = Math.PI / 2 - 0.02;
+      controls.minDistance = 20;
+      controls.maxDistance = 1500;
+      controls.target.set(0, 0, 0);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0xfff5ea, 1.35);
+      dirLight.position.set(-200, -200, 350);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 2048;
+      dirLight.shadow.mapSize.height = 2048;
+      scene.add(dirLight);
+
+      const terrainGroup = new THREE.Group();
+      scene.add(terrainGroup);
+
+      appState.three.renderer = renderer;
+      appState.three.scene = scene;
+      appState.three.camera = camera;
+      appState.three.controls = controls;
+      appState.three.terrainGroup = terrainGroup;
+      appState.three.isInitialized = true;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        if (appState.viewMode === "3d") {
+          controls.update();
+          renderer.render(scene, camera);
+          const angle = Math.atan2(camera.position.x, -camera.position.y) * (180 / Math.PI);
+          elements.compassNeedleSvg.style.transform = `rotate(${-angle}deg)`;
+        }
+      }
+      animate();
+
+      renderer.domElement.addEventListener('dblclick', (e) => {
+        const hit = raycastTerrain(e);
+        if (hit) controls.target.copy(hit.point);
+      });
+    }
+
+    function createCompositeTexture(dataset) {
+      const offscreen = document.createElement('canvas');
+      offscreen.width = 1024;
+      offscreen.height = 1024;
+      const ctx = offscreen.getContext('2d');
+
+      // 1. Imagery
+      if (elements.imageryCanvas) {
+        ctx.drawImage(elements.imageryCanvas, 0, 0, 1024, 1024);
+      }
+
+      // 2. Hillshade Multiply
+      if (elements.hillshadeCanvas) {
+        ctx.globalAlpha = 0.40;
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.drawImage(elements.hillshadeCanvas, 0, 0, 1024, 1024);
+        ctx.globalCompositeOperation = 'source-over';
+      }
+
+      // 3. Contours
+      if (dataset) {
+        ctx.save();
+        ctx.scale(1024 / dataset.width, 1024 / dataset.height);
+        const pathGen = d3.geoPath().context(ctx);
+        const contourGen = d3.contours().size([dataset.width, dataset.height]).smooth(true);
+        const contours = contourGen.thresholds(d3.range(dataset.minFeet, dataset.maxFeet, appState.contourIntervalFt))(dataset.rawFeet);
+        contours.forEach(c => {
+          ctx.beginPath();
+          pathGen(c);
+          ctx.strokeStyle = (Math.round(c.value) % 5 === 0) ? "rgba(28, 25, 23, 0.95)" : "rgba(68, 64, 60, 0.7)";
+          ctx.lineWidth = 1.6;
+          ctx.stroke();
+        });
+        ctx.restore();
+      }
+
+      // 4. Authored Site Model Areas & Exclusions draped on 3D
+      if (dataset) {
+        ctx.save();
+        for (const area of siteModel.areas) {
+          ctx.fillStyle = area.kind === 'turf' ? "rgba(16, 185, 129, 0.35)" : (area.kind === 'beds' ? "rgba(245, 158, 11, 0.35)" : "rgba(56, 189, 248, 0.35)");
+          ctx.strokeStyle = area.kind === 'turf' ? "#10b981" : "#f59e0b";
+          ctx.lineWidth = 4;
+          drawGeometryToCanvas(ctx, area.geometry, dataset, true);
+        }
+        for (const excl of siteModel.exclusions) {
+          ctx.fillStyle = "rgba(244, 63, 94, 0.4)";
+          ctx.strokeStyle = "#f43f5e";
+          ctx.lineWidth = 4;
+          drawGeometryToCanvas(ctx, excl.geometry, dataset, true);
+        }
+        ctx.restore();
+      }
+
+      const texture = new THREE.CanvasTexture(offscreen);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.generateMipmaps = true;
+      return texture;
+    }
+
+    function build3DTerrainMesh(dataset) {
+      if (!appState.three.isInitialized) initThreeScene();
+
+      const group = appState.three.terrainGroup;
+      while (group.children.length > 0) {
+        const obj = group.children[0];
+        group.remove(obj);
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+          else obj.material.dispose();
+        }
+      }
+
+      const N = appState.three.gridSize;
+      const halfSize = 100;
+      const totalGroundMeters = dataset.radiusMeters * 2;
+      const zScale = (halfSize * 2) / totalGroundMeters;
+
+      const rawZ = new Float32Array(N * N);
+      const cellActive = new Uint8Array((N - 1) * (N - 1));
+      const srcW = dataset.width;
+      const srcH = dataset.height;
+
+      let minElevM = Infinity, maxElevM = -Infinity, sumElevM = 0, validCount = 0;
+
+      for (let j = 0; j < N; j++) {
+        const srcY = (1 - j / (N - 1)) * (srcH - 1);
+        for (let i = 0; i < N; i++) {
+          const srcX = (i / (N - 1)) * (srcW - 1);
+          const elevFt = sampleElevationAtPixel(srcX, srcY, dataset);
+          const elevM = isNaN(elevFt) ? 0 : elevFt / METERS_TO_FEET;
+          rawZ[j * N + i] = elevM;
+          if (isFinite(elevM)) {
+            if (elevM < minElevM) minElevM = elevM;
+            if (elevM > maxElevM) maxElevM = elevM;
+            sumElevM += elevM;
+            validCount++;
+          }
+        }
+      }
+
+      const meanElevM = sumElevM / (validCount || 1);
+      appState.three.rawZValues = { rawZ, minElevM, maxElevM, meanElevM, zScale, N, halfSize };
+
+      const doClip = appState.clipToParcel && appState.highlightedParcel;
+      let activeCount = 0;
+
+      for (let j = 0; j < N - 1; j++) {
+        const py = (1 - (j + 0.5) / (N - 1)) * srcH;
+        for (let i = 0; i < N - 1; i++) {
+          const px = ((i + 0.5) / (N - 1)) * srcW;
+          const pt = pixelToWgs84(px, py, dataset);
+          const inside = !doClip || isPointInGeometry(pt, appState.highlightedParcel.geometry);
+          cellActive[j * (N - 1) + i] = inside ? 1 : 0;
+          if (inside) activeCount++;
+        }
+      }
+
+      if (activeCount === 0) cellActive.fill(1);
+
+      const baseZScene = (minElevM - 15 - meanElevM) * zScale * appState.three.exaggeration;
+      const step = (halfSize * 2) / (N - 1);
+
+      const topPositions = [], topUVs = [], skirtPositions = [];
+
+      function getV(i, j) {
+        return [-halfSize + i * step, -halfSize + j * step, (rawZ[j * N + i] - meanElevM) * zScale * appState.three.exaggeration];
+      }
+
+      for (let j = 0; j < N - 1; j++) {
+        const v0 = j / (N - 1), v1 = (j + 1) / (N - 1);
+        for (let i = 0; i < N - 1; i++) {
+          if (cellActive[j * (N - 1) + i] === 0) continue;
+          const u0 = i / (N - 1), u1 = (i + 1) / (N - 1);
+
+          const p00 = getV(i, j), p10 = getV(i + 1, j), p11 = getV(i + 1, j + 1), p01 = getV(i, j + 1);
+          const b00 = [p00[0], p00[1], baseZScene], b10 = [p10[0], p10[1], baseZScene], b11 = [p11[0], p11[1], baseZScene], b01 = [p01[0], p01[1], baseZScene];
+
+          topPositions.push(p00[0], p00[1], p00[2], p10[0], p10[1], p10[2], p11[0], p11[1], p11[2], p00[0], p00[1], p00[2], p11[0], p11[1], p11[2], p01[0], p01[1], p01[2]);
+          topUVs.push(u0, v0, u1, v0, u1, v1, u0, v0, u1, v1, u0, v1);
+
+          skirtPositions.push(b00[0], b00[1], b00[2], b11[0], b11[1], b11[2], b10[0], b10[1], b10[2], b00[0], b00[1], b00[2], b01[0], b01[1], b01[2], b11[0], b11[1], b11[2]);
+
+          if (j === 0 || cellActive[(j - 1) * (N - 1) + i] === 0) skirtPositions.push(p00[0], p00[1], p00[2], b10[0], b10[1], b10[2], p10[0], p10[1], p10[2], p00[0], p00[1], p00[2], b00[0], b00[1], b00[2], b10[0], b10[1], b10[2]);
+          if (i === N - 2 || cellActive[j * (N - 1) + (i + 1)] === 0) skirtPositions.push(p10[0], p10[1], p10[2], b11[0], b11[1], b11[2], p11[0], p11[1], p11[2], p10[0], p10[1], p10[2], b10[0], b10[1], b10[2], b11[0], b11[1], b11[2]);
+          if (j === N - 2 || cellActive[(j + 1) * (N - 1) + i] === 0) skirtPositions.push(p11[0], p11[1], p11[2], b01[0], b01[1], b01[2], p01[0], p01[1], p01[2], p11[0], p11[1], p11[2], b11[0], b11[1], b11[2], b01[0], b01[1], b01[2]);
+          if (i === 0 || cellActive[j * (N - 1) + (i - 1)] === 0) skirtPositions.push(p01[0], p01[1], p01[2], b00[0], b00[1], b00[2], p00[0], p00[1], p00[2], p01[0], p01[1], p01[2], b01[0], b01[1], b01[2], b00[0], b00[1], b00[2]);
+        }
+      }
+
+      const dioramaGeo = new THREE.BufferGeometry();
+      dioramaGeo.setAttribute('position', new THREE.Float32BufferAttribute(topPositions.concat(skirtPositions), 3));
+      dioramaGeo.setAttribute('uv', new THREE.Float32BufferAttribute(topUVs.concat(new Array(skirtPositions.length / 3 * 2).fill(0)), 2));
+      dioramaGeo.computeVertexNormals();
+
+      dioramaGeo.addGroup(0, topPositions.length / 3, 0);
+      dioramaGeo.addGroup(topPositions.length / 3, skirtPositions.length / 3, 1);
+
+      const topMat = new THREE.MeshStandardMaterial({ map: createCompositeTexture(dataset), roughness: 0.85, metalness: 0.1 });
+      const skirtMat = new THREE.MeshStandardMaterial({ color: 0x22272e, roughness: 0.95 });
+
+      const dioramaMesh = new THREE.Mesh(dioramaGeo, [topMat, skirtMat]);
+      dioramaMesh.castShadow = true;
+      group.add(dioramaMesh);
+      appState.three.terrainMesh = dioramaMesh;
+    }
+
+    function raycastTerrain(event) {
+      if (!appState.three.terrainMesh || !appState.three.camera) return null;
+      const rect = elements.threeViewport.getBoundingClientRect();
+      appState.three.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      appState.three.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      appState.three.raycaster.setFromCamera(appState.three.mouse, appState.three.camera);
+      const hits = appState.three.raycaster.intersectObject(appState.three.terrainMesh);
+      return hits.length > 0 ? hits[0] : null;
+    }
+
+    function drawGeometryToCanvas(ctx, geometry, dataset, isFilled = false) {
+      if (!geometry || !geometry.coordinates) return;
+      const polys = geometry.type === 'Polygon' ? [geometry.coordinates] : (geometry.type === 'MultiPolygon' ? geometry.coordinates : []);
+      ctx.beginPath();
+      for (const poly of polys) {
+        for (const ring of poly) {
+          for (let i = 0; i < ring.length; i++) {
+            const [px, py] = wgs84ToPixel(ring[i][0], ring[i][1], dataset);
+            const cx = (px / dataset.width) * ctx.canvas.width;
+            const cy = (py / dataset.height) * ctx.canvas.height;
+            if (i === 0) ctx.moveTo(cx, cy);
+            else ctx.lineTo(cx, cy);
+          }
+          ctx.closePath();
+        }
+      }
+      if (isFilled) ctx.fill();
+      ctx.stroke();
+    }
+
+    function geojsonToSvgPath(geometry, dataset) {
+      if (!geometry || !geometry.coordinates) return '';
+      const polys = geometry.type === 'Polygon' ? [geometry.coordinates] : (geometry.type === 'MultiPolygon' ? geometry.coordinates : []);
+      let d = '';
+      for (const poly of polys) {
+        for (const ring of poly) {
+          for (let i = 0; i < ring.length; i++) {
+            const [px, py] = wgs84ToPixel(ring[i][0], ring[i][1], dataset);
+            d += (i === 0 ? `M${px.toFixed(1)},${py.toFixed(1)}` : `L${px.toFixed(1)},${py.toFixed(1)}`);
+          }
+          d += 'Z ';
+        }
+      }
+      return d.trim();
+    }
+
+    function sampleElevationAtPixel(px, py, dataset) {
+      if (!dataset) return 0;
+      const x = Math.max(0, Math.min(dataset.width - 1, px));
+      const y = Math.max(0, Math.min(dataset.height - 1, py));
+      const val = dataset.rawFeet[Math.floor(y) * dataset.width + Math.floor(x)];
+      return isNaN(val) ? 0 : val;
+    }
+
+    // Topography & Parcels API Pipelines
+    async function loadCoordinatesPipeline(lat, lon, radius) {
+      elements.loadingOverlay.classList.add('active');
+      elements.loadingText.textContent = `Fetching LiDAR for ${lat.toFixed(4)}°, ${lon.toFixed(4)}°...`;
+
+      try {
+        const dataset = await fetchTopography(lat, lon, radius);
+        appState.dataset = dataset;
+
+        const [imageryOk, parcelsData] = await Promise.all([
+          fetchAerialImagery(dataset),
+          fetchChesterCountyParcels(dataset)
+        ]);
+
+        appState.parcelsGeoJSON = parcelsData;
+        if (parcelsData?.features?.length) {
+          appState.highlightedParcel = parcelsData.features.find(f => isPointInGeometry([lon, lat], f.geometry)) || parcelsData.features[0];
+          siteModel.site.parcel = appState.highlightedParcel.geometry;
+        }
+
+        siteModel.site.centroid = [lon, lat];
+
+        renderParcels(parcelsData, dataset);
+        recalculateAllDerivedStats();
+        renderSiteModel();
+        updateInspector();
+        validateSiteModel();
+
+        if (appState.viewMode === "3d") build3DTerrainMesh(dataset);
+
+        elements.loadingOverlay.classList.remove('active');
+      } catch (e) {
+        console.error("Pipeline error:", e);
+        elements.loadingOverlay.classList.remove('active');
+      }
+    }
+
+    async function fetchTopography(lat, lon, radiusMeters) {
+      const [centerX, centerY] = wgs84ToMercator(lon, lat);
+      const cosLat = Math.cos((lat * Math.PI) / 180);
+      const radiusMercator = radiusMeters / cosLat;
+
+      const minX = centerX - radiusMercator, maxX = centerX + radiusMercator;
+      const minY = centerY - radiusMercator, maxY = centerY + radiusMercator;
+      const width = 512, height = 512;
+
+      const url = `https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage?bbox=${minX.toFixed(2)},${minY.toFixed(2)},${maxX.toFixed(2)},${maxY.toFixed(2)}&bboxSR=3857&imageSR=3857&size=${width},${height}&format=lerc&pixelType=F32&f=image`;
+
+      const resp = await fetch(url);
+      const arrayBuffer = await resp.arrayBuffer();
+      const decoded = window.Lerc.decode(arrayBuffer, { returnMask: true });
+      const rawPixels = decoded.pixels ? decoded.pixels[0] : decoded.pixelData;
+
+      const rawFeet = new Float64Array(width * height);
+      let minFt = Infinity, maxFt = -Infinity, sumFt = 0, count = 0;
+
+      for (let i = 0; i < rawPixels.length; i++) {
+        const m = rawPixels[i];
+        if (m > -500 && m < 9000) {
+          const ft = m * METERS_TO_FEET;
+          rawFeet[i] = ft;
+          if (ft < minFt) minFt = ft;
+          if (ft > maxFt) maxFt = ft;
+          sumFt += ft;
+          count++;
+        } else {
+          rawFeet[i] = NaN;
+        }
+      }
+
+      return {
+        width, height, rawMeters: rawPixels, rawFeet,
+        minFeet: minFt, maxFeet: maxFt, meanFeet: sumFt / (count || 1),
+        dxGroundMeters: (radiusMeters * 2) / width,
+        dxGroundFeet: ((radiusMeters * 2) / width) * METERS_TO_FEET,
+        bboxMercator: { minX, maxX, minY, maxY }
+      };
+    }
+
+    async function fetchAerialImagery(dataset) {
+      const { minX, maxX, minY, maxY } = dataset.bboxMercator;
+      const url = `https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage?bbox=${minX.toFixed(2)},${minY.toFixed(2)},${maxX.toFixed(2)},${maxY.toFixed(2)}&bboxSR=3857&imageSR=3857&size=512,512&format=jpgpng&f=image`;
+
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          const ctx = elements.imageryCanvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, 512, 512);
+          resolve(true);
+        };
+        img.onerror = () => resolve(false);
+        img.src = url;
+      });
+    }
+
+    async function fetchChesterCountyParcels(dataset) {
+      const { minX, maxX, minY, maxY } = dataset.bboxMercator;
+      const [minLon, minLat] = mercatorToWgs84(minX, minY);
+      const [maxLon, maxLat] = mercatorToWgs84(maxX, maxY);
+
+      try {
+        const url = `https://mapservices.pasda.psu.edu/server/rest/services/pasda/ChesterCounty/MapServer/11/query?geometry=${minLon.toFixed(6)},${minLat.toFixed(6)},${maxLon.toFixed(6)},${maxLat.toFixed(6)}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&outSR=4326&f=geojson`;
+        const resp = await fetch(url);
+        if (resp.ok) return await resp.json();
+      } catch (e) {}
+      return null;
+    }
+
+    function renderParcels(geojson, dataset) {
+      const svg = elements.parcelsSvg;
+      svg.innerHTML = '';
+      if (!geojson?.features) return;
+
+      geojson.features.forEach(feat => {
+        const isHighlight = feat === appState.highlightedParcel;
+        const pathD = geojsonToSvgPath(feat.geometry, dataset);
+        if (pathD) {
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute("d", pathD);
+          path.setAttribute("class", isHighlight ? "parcel-polygon-highlight" : "parcel-line-general");
+          svg.appendChild(path);
+        }
+      });
+    }
+
+    // Event Listeners & UI Binding
+    function setupEventListeners() {
+      // Sidebar Tab Switching
+      document.querySelectorAll('.sidebar-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.sidebar-tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const tab = btn.getAttribute('data-tab');
+          document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+          document.getElementById(`tab-content-${tab}`).style.display = 'flex';
+          document.getElementById(`tab-content-${tab}`).style.flexDirection = 'column';
+          document.getElementById(`tab-content-${tab}`).style.gap = '10px';
+        });
+      });
+
+      // 2D/3D Mode
+      elements.btnMode2D.addEventListener('click', () => setViewMode("2d"));
+      elements.btnMode3D.addEventListener('click', () => setViewMode("3d"));
+
+      // Drawing Tools
+      document.querySelectorAll('#drawing-toolbar .tool-btn[data-tool]').forEach(btn => {
+        btn.addEventListener('click', () => setActiveTool(btn.getAttribute('data-tool')));
+      });
+
+      // Undo / Redo
+      elements.btnUndo.addEventListener('click', undo);
+      elements.btnRedo.addEventListener('click', redo);
+
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+          if (e.shiftKey) redo();
+          else undo();
+        } else if (e.key === 'Escape') {
+          cancelCurrentDrawing();
+          setActiveTool('pan');
+        } else if (e.key.toLowerCase() === 'p') {
+          setActiveTool('draw-polygon');
+        } else if (e.key.toLowerCase() === 'v') {
+          setActiveTool('pan');
+        } else if (e.key.toLowerCase() === 'n') {
+          setActiveTool('edit-vertices');
+        }
+      });
+
+      // Feature Deletion
+      elements.btnDeleteFeature.addEventListener('click', () => {
+        if (!appState.selectedFeatureId) return;
+        pushHistoryState();
+        siteModel.areas = siteModel.areas.filter(a => a.id !== appState.selectedFeatureId);
+        siteModel.exclusions = siteModel.exclusions.filter(e => e.id !== appState.selectedFeatureId);
+        appState.selectedFeatureId = null;
+        updateInspector();
+        renderSiteModel();
+      });
+
+      // Inspector Area Field Changes
+      elements.areaInputName.addEventListener('input', (e) => {
+        const area = siteModel.areas.find(a => a.id === appState.selectedFeatureId);
+        if (area) { area.name = e.target.value; updateFeaturesInventory(); }
+      });
+      elements.areaSelectKind.addEventListener('change', (e) => {
+        const area = siteModel.areas.find(a => a.id === appState.selectedFeatureId);
+        if (area) { area.kind = e.target.value; renderSiteModel(); }
+      });
+      elements.areaSelectPriority.addEventListener('change', (e) => {
+        const area = siteModel.areas.find(a => a.id === appState.selectedFeatureId);
+        if (area) area.priority = e.target.value;
+      });
+      elements.areaSelectSun.addEventListener('change', (e) => {
+        const area = siteModel.areas.find(a => a.id === appState.selectedFeatureId);
+        if (area) area.sun = e.target.value;
+      });
+      elements.areaSelectSoil.addEventListener('change', (e) => {
+        const area = siteModel.areas.find(a => a.id === appState.selectedFeatureId);
+        if (area) area.soil = e.target.value;
+      });
+
+      // Inspector Exclusion Field Changes
+      elements.exclInputName.addEventListener('input', (e) => {
+        const excl = siteModel.exclusions.find(e => e.id === appState.selectedFeatureId);
+        if (excl) { excl.name = e.target.value; updateFeaturesInventory(); }
+      });
+      elements.exclSelectKind.addEventListener('change', (e) => {
+        const excl = siteModel.exclusions.find(e => e.id === appState.selectedFeatureId);
+        if (excl) { excl.kind = e.target.value; renderSiteModel(); }
+      });
+      elements.exclSliderBuffer.addEventListener('input', (e) => {
+        const excl = siteModel.exclusions.find(e => e.id === appState.selectedFeatureId);
+        if (excl) {
+          excl.buffer_ft = parseInt(e.target.value, 10);
+          elements.exclValBuffer.textContent = `${excl.buffer_ft} ft`;
+          renderSiteModel();
+        }
+      });
+
+      // Water Infrastructure Field Changes
+      elements.waterSelectType.addEventListener('change', (e) => {
+        siteModel.water_source.type = e.target.value;
+        saveToLocalStorage();
+      });
+      elements.waterInputPsi.addEventListener('input', (e) => {
+        siteModel.water_source.static_pressure_psi = parseFloat(e.target.value) || null;
+        saveToLocalStorage();
+      });
+      elements.waterInputGpm.addEventListener('input', (e) => {
+        siteModel.water_source.safe_yield_gpm = parseFloat(e.target.value) || null;
+        validateSiteModel();
+        saveToLocalStorage();
+      });
+      elements.waterSelectConfidence.addEventListener('change', (e) => {
+        siteModel.water_source.yield_confidence = e.target.value;
+        validateSiteModel();
+        saveToLocalStorage();
+      });
+      elements.btnPlaceWaterSource.addEventListener('click', () => {
+        setActiveTool('place-water');
+        alert("Click on the map at the well head or water meter location to place pin.");
+      });
+      elements.btnPlaceController.addEventListener('click', () => {
+        setActiveTool('place-controller');
+        alert("Click on the map at the garage / controller location to place pin.");
+      });
+
+      // Persistence buttons
+      elements.btnSaveModel.addEventListener('click', downloadSiteModelJson);
+      elements.btnLoadModel.addEventListener('click', () => elements.fileImportInput.click());
+      elements.fileImportInput.addEventListener('change', (e) => {
+        if (e.target.files?.length) importSiteModelFile(e.target.files[0]);
+      });
+
+      // Heads Database Modal
+      elements.btnOpenHeadsDb.addEventListener('click', () => elements.headsModal.classList.add('active'));
+      elements.btnCloseHeadsModal.addEventListener('click', () => elements.headsModal.classList.remove('active'));
+      elements.headsSearchInput.addEventListener('input', renderHeadsTable);
+      elements.headsFilterType.addEventListener('change', renderHeadsTable);
+      elements.headsFilterBrand.addEventListener('change', renderHeadsTable);
+
+      // 3D Controls
+      elements.sliderExaggeration.addEventListener('input', (e) => {
+        appState.three.exaggeration = parseFloat(e.target.value);
+        elements.valExaggeration.textContent = `${appState.three.exaggeration.toFixed(1)}x`;
+        if (appState.dataset) build3DTerrainMesh(appState.dataset);
+      });
+      elements.btnExportStl.addEventListener('click', exportWatertightSTL);
+      elements.btnExportGlb.addEventListener('click', exportGLBAsset);
+
+      // Address Search Form
+      elements.searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const val = elements.addressInput.value.trim();
+        if (val) loadAddress(val);
+      });
+
+      initDrawingEngine();
+    }
+
+    async function loadAddress(address) {
+      try {
+        const nomUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1&countrycodes=us`;
+        const resp = await fetch(nomUrl);
+        const data = await resp.json();
+        if (data?.length) {
+          appState.lat = parseFloat(data[0].lat);
+          appState.lon = parseFloat(data[0].lon);
+          siteModel.site.address = address;
+          elements.overlayAddressTitle.textContent = address;
+          loadCoordinatesPipeline(appState.lat, appState.lon, appState.radiusMeters);
+        }
+      } catch (e) {}
+    }
+
+    function setViewMode(mode) {
+      appState.viewMode = mode;
+      elements.btnMode2D.classList.toggle('active', mode === "2d");
+      elements.btnMode3D.classList.toggle('active', mode === "3d");
+      elements.mapLayersContainer.style.display = mode === "2d" ? 'block' : 'none';
+      elements.threeViewport.style.display = mode === "3d" ? 'block' : 'none';
+      elements.drawingToolbar.style.display = mode === "2d" ? 'flex' : 'none';
+
+      if (mode === "3d") {
+        if (!appState.three.isInitialized) initThreeScene();
+        if (appState.dataset) build3DTerrainMesh(appState.dataset);
+      }
+    }
+
+    function exportWatertightSTL() {
+      if (!appState.three.terrainMesh) return;
+      const exporter = new STLExporter();
+      const result = exporter.parse(appState.three.terrainGroup, { binary: true });
+      const blob = new Blob([result], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `skyhook_3d_terrain_${appState.three.exaggeration}x_180mm.stl`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function exportGLBAsset() {
+      if (!appState.three.terrainGroup) return;
+      const exporter = new GLTFExporter();
+      exporter.parse(appState.three.terrainGroup, (gltf) => {
+        const blob = new Blob([gltf], { type: 'model/gltf-binary' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.download = "skyhook_site_3d.glb";
+        a.href = url;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, { binary: true });
+    }
+
+    // Startup
+    window.addEventListener('DOMContentLoaded', async () => {
+      loadFromLocalStorage();
+      setupEventListeners();
+      await loadHeadsDatabase();
+      loadCoordinatesPipeline(appState.lat, appState.lon, appState.radiusMeters);
+    });
+  </script>
+</body>
+</html>

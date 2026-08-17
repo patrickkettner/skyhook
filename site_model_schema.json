@@ -1,0 +1,155 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SkyhookSiteModel",
+  "description": "Schema for Skyhook Lawn Irrigation Site Model Authoring",
+  "type": "object",
+  "required": ["version", "site", "water_source", "controller", "areas", "exclusions"],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "enum": [1]
+    },
+    "site": {
+      "type": "object",
+      "required": ["address", "centroid", "units"],
+      "properties": {
+        "address": { "type": "string" },
+        "centroid": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "parcel": {
+          "type": ["object", "null"],
+          "properties": {
+            "type": { "type": "string", "enum": ["Polygon", "MultiPolygon"] },
+            "coordinates": { "type": "array" }
+          }
+        },
+        "units": {
+          "type": "string",
+          "enum": ["imperial", "metric"],
+          "default": "imperial"
+        }
+      }
+    },
+    "water_source": {
+      "type": "object",
+      "required": ["type", "location"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["well", "municipal", "cistern"]
+        },
+        "location": {
+          "type": ["array", "null"],
+          "items": { "type": "number" }
+        },
+        "static_pressure_psi": { "type": ["number", "null"] },
+        "safe_yield_gpm": { "type": ["number", "null"] },
+        "yield_confidence": {
+          "type": "string",
+          "enum": ["measured", "estimated", "unknown"],
+          "default": "unknown"
+        },
+        "service_line": {
+          "type": "object",
+          "properties": {
+            "size_in": { "type": "number" },
+            "material": { "type": "string" },
+            "length_ft": { "type": ["number", "null"] }
+          }
+        },
+        "notes": { "type": "string", "default": "" }
+      }
+    },
+    "controller": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": ["array", "null"],
+          "items": { "type": "number" }
+        },
+        "max_stations": { "type": ["integer", "null"] },
+        "notes": { "type": "string" }
+      }
+    },
+    "areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "geometry", "kind"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "geometry": {
+            "type": "object",
+            "required": ["type", "coordinates"],
+            "properties": {
+              "type": { "type": "string", "enum": ["Polygon"] },
+              "coordinates": { "type": "array" }
+            }
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["turf", "beds", "garden", "orchard", "none"],
+            "default": "turf"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["must", "nice", "dormant_ok"],
+            "default": "must"
+          },
+          "sun": {
+            "type": "string",
+            "enum": ["full", "part", "shade"],
+            "default": "full"
+          },
+          "soil": {
+            "type": "string",
+            "enum": ["sand", "loam", "clay", "unknown"],
+            "default": "loam"
+          },
+          "slope_pct": { "type": "number" },
+          "elev_min_ft": { "type": "number" },
+          "elev_max_ft": { "type": "number" },
+          "area_sqft": { "type": "number" },
+          "aspect": { "type": "string" }
+        }
+      }
+    },
+    "exclusions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "geometry", "kind"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "geometry": {
+            "type": "object",
+            "required": ["type", "coordinates"],
+            "properties": {
+              "type": { "type": "string", "enum": ["Polygon", "LineString", "Point"] },
+              "coordinates": { "type": "array" }
+            }
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["septic_tank", "septic_field", "well_head", "driveway", "structure", "utility", "tree", "no_spray", "other"],
+            "default": "structure"
+          },
+          "buffer_ft": { "type": "number", "default": 0 },
+          "no_trench": { "type": "boolean", "default": true },
+          "no_spray": { "type": "boolean", "default": true }
+        }
+      }
+    },
+    "obstacles_auto": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "notes": { "type": "string", "default": "" }
+  }
+}
