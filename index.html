@@ -2972,6 +2972,8 @@
         }
 
         siteModel.site.centroid = [lon, lat];
+        elements.overlayAddressTitle.textContent = siteModel.site.address || `${lat.toFixed(4)}°, ${lon.toFixed(4)}°`;
+        elements.overlayCoords.textContent = `Lat: ${lat.toFixed(5)}°, Lon: ${lon.toFixed(5)}°`;
 
         renderHillshade(dataset);
         renderContours(dataset);
