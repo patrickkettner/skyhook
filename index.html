@@ -1905,6 +1905,7 @@
     }
 
     function pixelToWgs84(px, py, dataset) {
+      if (!dataset) return [0, 0];
       const { minX, maxX, minY, maxY } = dataset.bboxMercator;
       const x_merc = minX + (px / dataset.width) * (maxX - minX);
       const y_merc = maxY - (py / dataset.height) * (maxY - minY);
@@ -1912,6 +1913,7 @@
     }
 
     function wgs84ToPixel(lon, lat, dataset) {
+      if (!dataset) return [0, 0];
       const [x_merc, y_merc] = wgs84ToMercator(lon, lat);
       const { minX, maxX, minY, maxY } = dataset.bboxMercator;
       const px = ((x_merc - minX) / (maxX - minX)) * dataset.width;
@@ -1964,7 +1966,7 @@
         const p2 = ring[i + 1];
         const [x1, y1] = wgs84ToPixel(p1[0], p1[1], dataset);
         const [x2, y2] = wgs84ToPixel(p2[0], p2[1], dataset);
-        perimFt += Math.hypot(x2 - x1, y2 - y1) * dataset.dxGroundFeet;
+        perimFt += Math.hypot(x2 - x1, y2 - y1) * (dataset.dxGroundFeet || 1);
       }
 
       const areaCalc = computeGeometryAcreage(geometry);
@@ -1982,9 +1984,9 @@
           const ptWgs84 = pixelToWgs84(px, py, dataset);
           if (isPointInGeometry(ptWgs84, geometry)) {
             const elev = rawFeet[py * width + px];
-            if (!isNaN(elev)) {
+            if (isFinite(elev)) {
               if (elev < minFt) minFt = elev;
-              if (elev > maxFt) maxFt = elev;
+              if (elev > maxFt) maxElev: maxFt = elev;
               sumFt += elev;
               count++;
 
@@ -1994,8 +1996,8 @@
               const r_prev = Math.max(0, py - 1);
               const r_next = Math.min(height - 1, py + 1);
 
-              const dz_dx = (rawMeters[py * width + c_next] - rawMeters[py * width + c_prev]) / (2 * dxGroundMeters);
-              const dz_dy = (rawMeters[r_next * width + px] - rawMeters[r_prev * width + px]) / (2 * dxGroundMeters);
+              const dz_dx = (rawMeters[py * width + c_next] - rawMeters[py * width + c_prev]) / (2 * (dxGroundMeters || 1));
+              const dz_dy = (rawMeters[r_next * width + px] - rawMeters[r_prev * width + px]) / (2 * (dxGroundMeters || 1));
               const grad = Math.sqrt(dz_dx * dz_dx + dz_dy * dz_dy);
               sumSlope += grad * 100;
 
@@ -2008,9 +2010,9 @@
       }
 
       if (count === 0 || !isFinite(minFt)) {
-        minFt = dataset.minFeet;
-        maxFt = dataset.maxFeet;
-        sumFt = dataset.meanFeet;
+        minFt = isFinite(dataset.minFeet) ? dataset.minFeet : 0;
+        maxFt = isFinite(dataset.maxFeet) ? dataset.maxFeet : 0;
+        sumFt = isFinite(dataset.meanFeet) ? dataset.meanFeet : 0;
         count = 1;
       }
 
@@ -2247,7 +2249,7 @@
 
         // Buffer Halo if buffer_ft > 0
         if (excl.buffer_ft > 0 && excl.geometry.type === 'Polygon') {
-          const bufferPx = (excl.buffer_ft / dataset.dxGroundFeet);
+          const bufferPx = (excl.buffer_ft / (dataset.dxGroundFeet || 1));
           const pathD = geojsonToSvgPath(excl.geometry, dataset);
           if (pathD) {
             const halo = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -2717,7 +2719,7 @@
 
       let perim = 0;
       for (let i = 0; i < pts.length - 1; i++) {
-        perim += Math.hypot(pts[i+1][0] - pts[i][0], pts[i+1][1] - pts[i][1]) * appState.dataset.dxGroundFeet;
+        perim += Math.hypot(pts[i+1][0] - pts[i][0], pts[i+1][1] - pts[i][1]) * (appState.dataset?.dxGroundFeet || 1);
       }
       pill.textContent = `Perimeter: ${Math.round(perim)} ft | Double-click or click start to close`;
     }
@@ -2988,7 +2990,7 @@
 
       function animate() {
         requestAnimationFrame(animate);
-        if (appState.viewMode === "3d") {
+        if (appState.viewMode === "3d" && appState.three.renderer && appState.three.scene && appState.three.camera) {
           controls.update();
           renderer.render(scene, camera);
           const angle = Math.atan2(camera.position.x, -camera.position.y) * (180 / Math.PI);
@@ -3023,7 +3025,7 @@
       }
 
       // 3. Contours
-      if (dataset) {
+      if (dataset && isFinite(dataset.minFeet) && isFinite(dataset.maxFeet)) {
         ctx.save();
         ctx.scale(1024 / dataset.width, 1024 / dataset.height);
         const pathGen = d3.geoPath().context(ctx);
@@ -3064,9 +3066,12 @@
     }
 
     function build3DTerrainMesh(dataset) {
+      if (!dataset || !dataset.rawFeet || !dataset.width || !dataset.height) return;
       if (!appState.three.isInitialized) initThreeScene();
 
       const group = appState.three.terrainGroup;
+      if (!group) return;
+
       while (group.children.length > 0) {
         const obj = group.children[0];
         group.remove(obj);
@@ -3077,9 +3082,9 @@
         }
       }
 
-      const N = appState.three.gridSize;
+      const N = appState.three.gridSize || 256;
       const halfSize = 100;
-      const totalGroundMeters = dataset.radiusMeters * 2;
+      const totalGroundMeters = Math.max(10, (dataset.radiusMeters || 100) * 2);
       const zScale = (halfSize * 2) / totalGroundMeters;
 
       const rawZ = new Float32Array(N * N);
@@ -3094,7 +3099,7 @@
         for (let i = 0; i < N; i++) {
           const srcX = (i / (N - 1)) * (srcW - 1);
           const elevFt = sampleElevationAtPixel(srcX, srcY, dataset);
-          const elevM = isNaN(elevFt) ? 0 : elevFt / METERS_TO_FEET;
+          const elevM = isFinite(elevFt) ? elevFt / METERS_TO_FEET : 0;
           rawZ[j * N + i] = elevM;
           if (isFinite(elevM)) {
             if (elevM < minElevM) minElevM = elevM;
@@ -3105,7 +3110,18 @@
         }
       }
 
-      const meanElevM = sumElevM / (validCount || 1);
+      if (validCount === 0 || !isFinite(minElevM) || !isFinite(maxElevM)) {
+        minElevM = isFinite(dataset.minFeet) ? dataset.minFeet / METERS_TO_FEET : 0;
+        maxElevM = isFinite(dataset.maxFeet) ? dataset.maxFeet / METERS_TO_FEET : 10;
+        sumElevM = isFinite(dataset.meanFeet) ? dataset.meanFeet / METERS_TO_FEET : 0;
+        validCount = 1;
+      }
+
+      const meanElevM = sumElevM / validCount;
+      for (let k = 0; k < rawZ.length; k++) {
+        if (!isFinite(rawZ[k])) rawZ[k] = meanElevM;
+      }
+
       appState.three.rawZValues = { rawZ, minElevM, maxElevM, meanElevM, zScale, N, halfSize };
 
       const doClip = appState.clipToParcel && appState.highlightedParcel;
@@ -3124,13 +3140,17 @@
 
       if (activeCount === 0) cellActive.fill(1);
 
-      const baseZScene = (minElevM - 15 - meanElevM) * zScale * appState.three.exaggeration;
+      const baseZScene = isFinite((minElevM - 15 - meanElevM) * zScale * appState.three.exaggeration)
+        ? (minElevM - 15 - meanElevM) * zScale * appState.three.exaggeration
+        : -20;
       const step = (halfSize * 2) / (N - 1);
 
       const topPositions = [], topUVs = [], skirtPositions = [];
 
       function getV(i, j) {
-        return [-halfSize + i * step, -halfSize + j * step, (rawZ[j * N + i] - meanElevM) * zScale * appState.three.exaggeration];
+        const val = rawZ[j * N + i];
+        const z = isFinite(val) ? (val - meanElevM) * zScale * appState.three.exaggeration : 0;
+        return [-halfSize + i * step, -halfSize + j * step, isFinite(z) ? z : 0];
       }
 
       for (let j = 0; j < N - 1; j++) {
@@ -3154,6 +3174,8 @@
         }
       }
 
+      if (topPositions.length === 0) return;
+
       const dioramaGeo = new THREE.BufferGeometry();
       dioramaGeo.setAttribute('position', new THREE.Float32BufferAttribute(topPositions.concat(skirtPositions), 3));
       dioramaGeo.setAttribute('uv', new THREE.Float32BufferAttribute(topUVs.concat(new Array(skirtPositions.length / 3 * 2).fill(0)), 2));
@@ -3169,6 +3191,14 @@
       dioramaMesh.castShadow = true;
       group.add(dioramaMesh);
       appState.three.terrainMesh = dioramaMesh;
+    }
+
+    function sampleElevationAtPixel(px, py, dataset) {
+      if (!dataset || !dataset.rawFeet) return 0;
+      const x = Math.max(0, Math.min(dataset.width - 1, Math.floor(px)));
+      const y = Math.max(0, Math.min(dataset.height - 1, Math.floor(py)));
+      const val = dataset.rawFeet[y * dataset.width + x];
+      return isFinite(val) ? val : (isFinite(dataset.meanFeet) ? dataset.meanFeet : 0);
     }
 
     function raycastTerrain(event) {
@@ -3215,14 +3245,6 @@
         }
       }
       return d.trim();
-    }
-
-    function sampleElevationAtPixel(px, py, dataset) {
-      if (!dataset) return 0;
-      const x = Math.max(0, Math.min(dataset.width - 1, px));
-      const y = Math.max(0, Math.min(dataset.height - 1, py));
-      const val = dataset.rawFeet[Math.floor(y) * dataset.width + Math.floor(x)];
-      return isNaN(val) ? 0 : val;
     }
 
     // Topography & Parcels API Pipelines
@@ -3297,7 +3319,10 @@
 
       return {
         width, height, rawMeters: rawPixels, rawFeet,
-        minFeet: minFt, maxFeet: maxFt, meanFeet: sumFt / (count || 1),
+        minFeet: isFinite(minFt) ? minFt : 0,
+        maxFeet: isFinite(maxFt) ? maxFt : 100,
+        meanFeet: isFinite(sumFt / (count || 1)) ? sumFt / (count || 1) : 0,
+        radiusMeters: radiusMeters,
         dxGroundMeters: (radiusMeters * 2) / width,
         dxGroundFeet: ((radiusMeters * 2) / width) * METERS_TO_FEET,
         bboxMercator: { minX, maxX, minY, maxY }
@@ -3573,7 +3598,41 @@
       loadFromLocalStorage();
       setupEventListeners();
       await loadHeadsDatabase();
-      loadCoordinatesPipeline(appState.lat, appState.lon, appState.radiusMeters);
+
+      // Parse URL parameters
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('address')) {
+        const addr = params.get('address');
+        elements.addressInput.value = addr;
+        siteModel.site.address = addr;
+      }
+      if (params.has('radius')) {
+        const r = parseInt(params.get('radius'), 10);
+        if ([100, 200, 400].includes(r)) {
+          appState.radiusMeters = r;
+          document.querySelectorAll('#radius-control .segment-btn').forEach(btn => {
+            btn.classList.toggle('active', parseInt(btn.dataset.radius, 10) === r);
+          });
+        }
+      }
+      if (params.has('interval')) {
+        const iv = parseInt(params.get('interval'), 10);
+        if ([1, 2, 5].includes(iv)) {
+          appState.contourIntervalFt = iv;
+          document.querySelectorAll('#interval-control .segment-btn').forEach(btn => {
+            btn.classList.toggle('active', parseInt(btn.dataset.interval, 10) === iv);
+          });
+        }
+      }
+
+      const initialMode = params.get('mode') || '2d';
+
+      // Load initial coordinates
+      await loadCoordinatesPipeline(appState.lat, appState.lon, appState.radiusMeters);
+
+      if (initialMode === '3d') {
+        setViewMode('3d');
+      }
     });
   </script>
 </body>
