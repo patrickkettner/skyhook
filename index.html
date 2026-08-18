@@ -5244,11 +5244,11 @@
       }
 
       // Gate 3: Selection vs Packing Prediction Consistency (BUG 8)
-      const predictedZones = headSelections[0]?.scoreResult?.winner?.estZones || 13;
+      const totalPredictedZones = headSelections.reduce((sum, h) => sum + (h.scoreResult?.winner?.estZones || 0), 0);
       const actualZones = scheduleResult.totalZones;
-      const zoneDivergencePct = Math.abs(actualZones - predictedZones) / predictedZones * 100;
+      const zoneDivergencePct = Math.abs(actualZones - totalPredictedZones) / Math.max(1, totalPredictedZones) * 100;
       if (zoneDivergencePct > 15.0) {
-        smokeFailures.push(`Selection prediction (${predictedZones} zones) and packing result (${actualZones} zones) diverge by ${zoneDivergencePct.toFixed(0)}% (>15% limit).`);
+        smokeFailures.push(`Selection prediction (${totalPredictedZones} zones) and packing result (${actualZones} zones) diverge by ${zoneDivergencePct.toFixed(0)}% (>15% limit).`);
       }
 
       // Gate 4: Net Area Accounting (BUG 9)
