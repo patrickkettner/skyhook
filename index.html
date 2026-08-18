@@ -1846,6 +1846,7 @@
       for (const area of siteModel.areas) {
         const stats = computePolygonDerivedStats(area.geometry, appState.dataset);
         area.area_sqft = stats.areaSqFt;
+        area.perim_ft = stats.perimFt;
         area.slope_pct = stats.slopePct;
         area.elev_min_ft = stats.minFt;
         area.elev_max_ft = stats.maxFt;
@@ -2487,7 +2488,6 @@
           no_trench: true
         };
         siteModel.exclusions.push(excl);
-        selectFeature(excl.id, "exclusion");
       } else if (appState.activeTool === 'draw-line') {
         const excl = {
           id: newId,
@@ -2499,7 +2499,6 @@
           no_trench: true
         };
         siteModel.exclusions.push(excl);
-        selectFeature(excl.id, "exclusion");
       } else {
         const closedGeo = [...appState.drawingGeoPoints, appState.drawingGeoPoints[0]];
         const area = {
@@ -2516,11 +2515,12 @@
           area_sqft: 0
         };
         siteModel.areas.push(area);
-        selectFeature(area.id, "area");
       }
 
+      const isExcl = appState.activeTool === 'draw-exclusion-poly' || appState.activeTool === 'draw-line';
       cancelCurrentDrawing();
       recalculateAllDerivedStats();
+      selectFeature(newId, isExcl ? "exclusion" : "area");
       renderSiteModel();
       setActiveTool('pan');
     }
