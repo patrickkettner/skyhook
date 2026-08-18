@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "SkyhookSiteModel",
-  "description": "Schema for Skyhook Lawn Irrigation Site Model Authoring",
+  "description": "Schema for Skyhook Lawn Irrigation Site Model Authoring & Autonomous Solver",
   "type": "object",
   "required": ["version", "site", "water_source", "controller", "areas", "exclusions"],
   "properties": {
@@ -114,6 +114,7 @@
           "slope_pct": { "type": "number" },
           "elev_min_ft": { "type": "number" },
           "elev_max_ft": { "type": "number" },
+          "relief_ft": { "type": "number" },
           "area_sqft": { "type": "number" },
           "aspect": { "type": "string" }
         }
@@ -144,6 +145,31 @@
           "no_trench": { "type": "boolean", "default": true },
           "no_spray": { "type": "boolean", "default": true }
         }
+      }
+    },
+    "solved_layout": {
+      "type": ["object", "null"],
+      "properties": {
+        "solved_at": { "type": "string" },
+        "envelope": {
+          "type": "object",
+          "properties": {
+            "target_depth_in_wk": { "type": "number" },
+            "watering_window_hr": { "type": "number" },
+            "max_nights_per_week": { "type": "integer" },
+            "household_reserve_gpm": { "type": "number" },
+            "safety_margin_pct": { "type": "number" },
+            "usable_gpm": { "type": "number" },
+            "weekly_capacity_gal": { "type": "number" },
+            "supportable_area_sqft": { "type": "number" }
+          }
+        },
+        "design_envelope_matrix": { "type": "array" },
+        "head_selections": { "type": "array" },
+        "placed_heads": { "type": "array" },
+        "zones": { "type": "array" },
+        "summary": { "type": "object" },
+        "schedule_levers": { "type": "array" }
       }
     },
     "obstacles_auto": {
