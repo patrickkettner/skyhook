@@ -4860,10 +4860,11 @@
         const areaHeads = allHeads.filter(h => h.areaId === area.id);
         if (areaHeads.length === 0) continue;
 
+        const totalAreaFlowGpm = areaHeads.reduce((s, h) => s + h.gpm, 0) || 1;
+
         // Sort heads spatially into contiguous bands
         areaHeads.sort((a, b) => a.posFt[1] - b.posFt[1] || a.posFt[0] - b.posFt[0]);
 
-        const minZoneSqFt = 2000.0;
         let currentZoneHeads = [];
         let currentZoneGpm = 0;
         let minElev = Infinity, maxElev = -Infinity;
@@ -4879,7 +4880,7 @@
 
           if (currentZoneHeads.length > 0 && 
              (currentZoneGpm + h.gpm > usableGpm || (testSpread > maxSpread && currentZoneHeads.length >= 3))) {
-            zones.push(createZoneRecord(zoneCounter++, area, currentZoneHeads, solverConfig, areaHeads.length, du_lq));
+            zones.push(createZoneRecord(zoneCounter++, area, currentZoneHeads, solverConfig, totalAreaFlowGpm, du_lq));
             currentZoneHeads = [];
             currentZoneGpm = 0;
             minElev = Infinity;
@@ -4893,7 +4894,7 @@
         }
 
         if (currentZoneHeads.length > 0) {
-          zones.push(createZoneRecord(zoneCounter++, area, currentZoneHeads, solverConfig, areaHeads.length, du_lq));
+          zones.push(createZoneRecord(zoneCounter++, area, currentZoneHeads, solverConfig, totalAreaFlowGpm, du_lq));
         }
       }
 
@@ -4985,7 +4986,7 @@
     }
 
     // EXACT WATER-BALANCE ZONE RUNTIME FORMULA (BUG 1)
-    function createZoneRecord(zoneNum, area, heads, solverConfig, totalAreaHeads, du_lq) {
+    function createZoneRecord(zoneNum, area, heads, solverConfig, totalAreaFlowGpm, du_lq) {
       const zoneId = `zone_${zoneNum}`;
       const totalGpm = heads.reduce((sum, h) => sum + h.gpm, 0);
       const elevs = heads.map(h => h.elev_ft);
@@ -4995,8 +4996,8 @@
 
       heads.forEach(h => h.zoneId = zoneId);
 
-      const totalHeads = totalAreaHeads || heads.length || 1;
-      const zoneSqFt = Math.round((area.area_sqft || 49854) * (heads.length / totalHeads));
+      const totalFlow = totalAreaFlowGpm || totalGpm || 1;
+      const zoneSqFt = Math.round((area.area_sqft || 49854) * (totalGpm / totalFlow));
       const truePrecipInHr = parseFloat(((96.3 * totalGpm) / Math.max(1, zoneSqFt)).toFixed(2));
       const targetDepth = solverConfig.target_depth_in_wk;
 
@@ -5017,10 +5018,6 @@
         soakMin = 30;
       }
 
-      // Compactness (perimeter estimation)
-      const approxSide = Math.sqrt(zoneSqFt);
-      const compactness = 0.82; // solid contiguous spatial block
-
       return {
         id: zoneId,
         name: `Zone ${zoneNum} (${area.name})`,
@@ -5036,7 +5033,7 @@
         elev_min: minElev,
         elev_max: maxElev,
         relief_ft: reliefFt,
-        compactness,
+        compactness: 0.85,
         prs_enabled: reliefFt > 10.0,
         cycleSoak: {
           needed: cycles > 1,
