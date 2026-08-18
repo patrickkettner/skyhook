@@ -4127,8 +4127,13 @@
       const db = catalog || appState.headsDatabase || [];
       if (!db || db.length === 0) return null;
       for (const h of db) {
-        if ((h.family && h.family.includes(familyBrand)) || (h.brand && h.brand.includes(familyBrand))) {
-          if (!nozzleName || (h.nozzle && h.nozzle.includes(nozzleName))) {
+        let matchFam = false;
+        if (h.family && familyBrand && (familyBrand.includes(h.family) || h.family.includes(familyBrand))) matchFam = true;
+        if (h.brand && familyBrand && (familyBrand.includes(h.brand) || h.brand.includes(familyBrand))) matchFam = true;
+        if (h.model && familyBrand && (familyBrand.includes(h.model) || h.model.includes(familyBrand))) matchFam = true;
+
+        if (matchFam) {
+          if (!nozzleName || (h.nozzle && (familyBrand.includes(h.nozzle) || nozzleName.includes(h.nozzle) || h.nozzle.includes(nozzleName)))) {
             return h;
           }
         }
@@ -4515,11 +4520,14 @@
         let duSource = "DU_lq: 78.5% (Raster Overlap Analysis)";
 
         if (fam.type === "rotor") {
-          const s = fam.nominalRadius * 0.95;
+          const repCat = lookupCatalogHead(fam.name, fam.defaultNozzle, headsCatalog) || { gpm: 3.0, radius_ft: 38 };
+          const s = (repCat.radius_ft || fam.nominalRadius) * 0.95;
           const headArea = s * s * 0.866;
           estHeads = Math.round(areaSqFt / headArea);
-          estZones = Math.max(1, Math.ceil(estHeads / 3.4));
-          precipInHr = rep.published_precip_in_hr || 0.28;
+          const avgFlowPerHead = (repCat.gpm || 3.0) * 0.75; // average across full, half, quarter heads
+          const totalAreaGpm = estHeads * avgFlowPerHead;
+          estZones = Math.max(1, Math.ceil(totalAreaGpm / 9.0));
+          precipInHr = parseFloat(((96.3 * totalAreaGpm) / Math.max(1, areaSqFt)).toFixed(2));
           installedCost = (estHeads * fam.headCost) + (estZones * 145.0) + (estHeads * 30 * 0.95) + (estHeads * 25 * 3.50);
           duVal = 0.785;
           duSource = "DU_lq: 78.5% (Raster Overlap Analysis)";
