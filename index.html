@@ -502,44 +502,47 @@
     #parcels-svg, #site-model-svg, #contour-svg, #draw-svg, #interaction-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
     #three-viewport { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 10; outline: none; }
 
-    /* Interactive Floating Drawing Toolbar */
+    /* Interactive Floating Drawing Toolbar (positioned over map-stage) */
     .drawing-toolbar-overlay {
       position: absolute;
-      top: 16px;
+      top: 24px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(22, 27, 34, 0.92);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--border-subtle);
+      background: rgba(22, 27, 34, 0.95);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 30px;
-      padding: 4px 6px;
+      padding: 4px 8px;
       display: flex;
       align-items: center;
-      gap: 4px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      z-index: 30;
+      gap: 5px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      z-index: 60;
+      pointer-events: auto;
     }
 
     .tool-btn {
       background: transparent;
       border: none;
       color: var(--text-secondary);
-      padding: 6px 10px;
-      font-size: 0.74rem;
+      padding: 6px 12px;
+      font-size: 0.76rem;
       font-weight: 600;
       border-radius: 20px;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       transition: all 0.15s ease;
+      pointer-events: auto;
+      user-select: none;
     }
-    .tool-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.08); }
+    .tool-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.12); }
     .tool-btn.active {
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      color: white;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+      color: white !important;
       font-weight: 700;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.5);
     }
 
     .toolbar-divider { width: 1px; height: 18px; background: var(--border-subtle); margin: 0 2px; }
@@ -547,17 +550,17 @@
     /* Live Cursor Tooltip */
     .draw-live-pill {
       position: absolute;
-      background: rgba(12, 16, 23, 0.9);
+      background: rgba(12, 16, 23, 0.92);
       backdrop-filter: blur(6px);
-      border: 1px solid var(--border-subtle);
+      border: 1px solid var(--accent-sky);
       border-radius: 12px;
-      padding: 3px 8px;
+      padding: 4px 10px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.68rem;
+      font-size: 0.7rem;
       font-weight: 600;
       color: var(--text-primary);
       pointer-events: none;
-      z-index: 40;
+      z-index: 70;
       display: none;
       transform: translate(14px, 14px);
     }
@@ -565,21 +568,21 @@
     /* Overlay Cards */
     .map-overlay-card {
       position: absolute;
-      background: rgba(22, 27, 34, 0.88);
+      background: rgba(22, 27, 34, 0.90);
       backdrop-filter: blur(8px);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
       padding: 6px 10px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-      z-index: 25;
+      z-index: 55;
       pointer-events: auto;
     }
 
-    .top-left-card { top: 16px; left: 16px; max-width: 280px; }
-    .top-right-compass { top: 16px; right: 16px; padding: 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; }
+    .top-left-card { top: 24px; left: 24px; max-width: 280px; }
+    .top-right-compass { top: 24px; right: 24px; padding: 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; }
     .compass-needle { width: 28px; height: 28px; transition: transform 0.1s linear; }
 
-    .map-nav-controls { top: 68px; right: 16px; display: flex; flex-direction: column; gap: 4px; padding: 4px; }
+    .map-nav-controls { top: 76px; right: 24px; display: flex; flex-direction: column; gap: 4px; padding: 4px; }
     .nav-btn {
       background: var(--bg-elevated);
       color: var(--text-primary);
@@ -595,12 +598,12 @@
     }
     .nav-btn:hover { background: #30363d; border-color: var(--accent-sky); color: var(--accent-sky); }
 
-    .scale-bar-container { bottom: 16px; left: 16px; display: flex; flex-direction: column; gap: 2px; }
+    .scale-bar-container { bottom: 24px; left: 24px; display: flex; flex-direction: column; gap: 2px; }
     .scale-bar-graphic { height: 4px; border: 1px solid #ffffff; border-top: none; background: linear-gradient(90deg, #ffffff 50%, #000000 50%); }
     .scale-bar-text { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 600; color: var(--text-primary); }
 
     .bottom-center-inspector {
-      bottom: 16px;
+      bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -615,11 +618,10 @@
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(12, 16, 23, 0.75);
       backdrop-filter: blur(8px);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 200; opacity: 0; pointer-events: none;
-      transition: opacity 0.2s ease;
+      display: none; align-items: center; justify-content: center;
+      z-index: 200; pointer-events: none;
     }
-    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-overlay.active { display: flex; pointer-events: auto; }
     .modal-dialog {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
@@ -661,8 +663,8 @@
     .parcel-line-general { fill: none; stroke: #facc15; stroke-width: 1.2; stroke-opacity: 0.85; }
     .parcel-polygon-highlight { fill: rgba(250, 204, 21, 0.15); stroke: #facc15; stroke-width: 2.6; }
     
-    .loading-overlay { position: absolute; inset: 0; background: rgba(12, 16, 23, 0.85); backdrop-filter: blur(6px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
-    .loading-overlay.active { opacity: 1; pointer-events: auto; }
+    .loading-overlay { position: absolute; inset: 0; background: rgba(12, 16, 23, 0.85); backdrop-filter: blur(6px); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; z-index: 90; pointer-events: none; }
+    .loading-overlay.active { display: flex; pointer-events: auto; }
     .spinner { width: 34px; height: 34px; border: 3px solid rgba(56, 189, 248, 0.2); border-top-color: var(--accent-sky); border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
@@ -1119,8 +1121,91 @@
     <!-- Map Viewport -->
     <main class="viewport-container">
 
-      <!-- Map Stage -->
-      <div class="map-wrapper">
+      <!-- Map Wrapper -->
+      <div class="map-wrapper" id="map-wrapper">
+        
+        <!-- Interactive Floating 2D Drawing Toolbar (Sibling of map-stage) -->
+        <div class="drawing-toolbar-overlay" id="drawing-toolbar">
+          <button type="button" class="tool-btn active" data-tool="pan" title="Pan Map / Select &amp; Move (V)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+            <span>Pan</span>
+          </button>
+          <button type="button" class="tool-btn" data-tool="draw-polygon" title="Draw Landscape Area Polygon (P)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 18 21 6 21 2 8.5 12 2"></polygon></svg>
+            <span>Area</span>
+          </button>
+          <button type="button" class="tool-btn" data-tool="draw-rectangle" title="Draw Rectangular Area (R)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+            <span>Box</span>
+          </button>
+          <button type="button" class="tool-btn" data-tool="draw-exclusion-poly" title="Draw Exclusion Zone (E)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+            <span>Exclusion</span>
+          </button>
+          <button type="button" class="tool-btn" data-tool="draw-line" title="Draw Exclusion / Utility Line (L)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="4"></line><circle cx="4" cy="20" r="2"></circle><circle cx="20" cy="4" r="2"></circle></svg>
+            <span>Line</span>
+          </button>
+          <button type="button" class="tool-btn" data-tool="edit-vertices" title="Edit Vertices (N)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            <span>Edit</span>
+          </button>
+
+          <div class="toolbar-divider"></div>
+
+          <button type="button" class="tool-btn" id="btn-undo" title="Undo (Ctrl+Z)" disabled>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+          </button>
+          <button type="button" class="tool-btn" id="btn-redo" title="Redo (Ctrl+Shift+Z)" disabled>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+          </button>
+        </div>
+
+        <!-- Top-Left Address Badge -->
+        <div class="map-overlay-card top-left-card">
+          <div class="address-title" id="overlay-address-title" style="font-size: 0.78rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Loading...</div>
+          <div class="address-meta" id="overlay-coords" style="font-size: 0.66rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;">Lat: —, Lon: —</div>
+        </div>
+
+        <!-- Top-Right Compass / North Arrow -->
+        <div class="map-overlay-card top-right-compass" id="compass-badge" title="True North">
+          <svg class="compass-needle" id="compass-needle-svg" viewBox="0 0 40 40">
+            <polygon points="20,4 26,20 20,16" fill="#f43f5e" />
+            <polygon points="20,4 14,20 20,16" fill="#fb7185" />
+            <polygon points="20,36 26,20 20,16" fill="#64748b" />
+            <polygon points="20,36 14,20 20,16" fill="#94a3b8" />
+            <text x="20" y="3" font-family="'Inter', sans-serif" font-size="8" font-weight="800" fill="#f43f5e" text-anchor="middle">N</text>
+          </svg>
+        </div>
+
+        <!-- Zoom Navigation Overlay -->
+        <div class="map-overlay-card map-nav-controls">
+          <button type="button" class="nav-btn" id="btn-zoom-in" title="Zoom In (+)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+          <button type="button" class="nav-btn" id="btn-zoom-out" title="Zoom Out (-)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+          <button type="button" class="nav-btn" id="btn-recenter" title="Recenter (R)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <!-- Scale Bar -->
+        <div class="map-overlay-card scale-bar-container" id="scale-bar-card">
+          <div class="scale-bar-graphic" id="scale-bar-box" style="width: 70px;"></div>
+          <div class="scale-bar-text" id="scale-bar-label">100 ft</div>
+        </div>
+
+        <!-- Live Cursor Inspector -->
+        <div class="map-overlay-card bottom-center-inspector">
+          <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600;">ELEV:</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight: 700; color: var(--accent-sky);" id="hover-elev">—</span>
+          <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">SLOPE:</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight: 700; color: var(--accent-emerald);" id="hover-slope">—</span>
+        </div>
+
+        <!-- Map Stage -->
         <div class="map-stage cursor-pan" id="map-stage">
           
           <!-- Transformable Layers Container -->
@@ -1138,89 +1223,8 @@
           <!-- 3D Three.js WebGL Container -->
           <div id="three-viewport"></div>
 
-          <!-- Interactive Floating 2D Drawing Toolbar -->
-          <div class="drawing-toolbar-overlay" id="drawing-toolbar">
-            <button class="tool-btn active" data-tool="pan" title="Pan Map / Select &amp; Move (V)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
-              <span>Pan</span>
-            </button>
-            <button class="tool-btn" data-tool="draw-polygon" title="Draw Landscape Area Polygon (P)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 18 21 6 21 2 8.5 12 2"></polygon></svg>
-              <span>Area</span>
-            </button>
-            <button class="tool-btn" data-tool="draw-rectangle" title="Draw Rectangular Area (R)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
-              <span>Box</span>
-            </button>
-            <button class="tool-btn" data-tool="draw-exclusion-poly" title="Draw Exclusion Zone (E)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
-              <span>Exclusion</span>
-            </button>
-            <button class="tool-btn" data-tool="draw-line" title="Draw Exclusion / Utility Line (L)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="20" y2="4"></line><circle cx="4" cy="20" r="2"></circle><circle cx="20" cy="4" r="2"></circle></svg>
-              <span>Line</span>
-            </button>
-            <button class="tool-btn" data-tool="edit-vertices" title="Edit Vertices (N)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-              <span>Edit</span>
-            </button>
-
-            <div class="toolbar-divider"></div>
-
-            <button class="tool-btn" id="btn-undo" title="Undo (Ctrl+Z)" disabled>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
-            </button>
-            <button class="tool-btn" id="btn-redo" title="Redo (Ctrl+Shift+Z)" disabled>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-            </button>
-          </div>
-
           <!-- Live Drawing Metric Tooltip -->
           <div class="draw-live-pill" id="draw-live-pill">Perim: 0 ft | Area: 0 sqft</div>
-
-          <!-- Top-Left Address Badge -->
-          <div class="map-overlay-card top-left-card">
-            <div class="address-title" id="overlay-address-title" style="font-size: 0.78rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Loading...</div>
-            <div class="address-meta" id="overlay-coords" style="font-size: 0.66rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;">Lat: —, Lon: —</div>
-          </div>
-
-          <!-- Top-Right Compass / North Arrow -->
-          <div class="map-overlay-card top-right-compass" id="compass-badge" title="True North">
-            <svg class="compass-needle" id="compass-needle-svg" viewBox="0 0 40 40">
-              <polygon points="20,4 26,20 20,16" fill="#f43f5e" />
-              <polygon points="20,4 14,20 20,16" fill="#fb7185" />
-              <polygon points="20,36 26,20 20,16" fill="#64748b" />
-              <polygon points="20,36 14,20 20,16" fill="#94a3b8" />
-              <text x="20" y="3" font-family="'Inter', sans-serif" font-size="8" font-weight="800" fill="#f43f5e" text-anchor="middle">N</text>
-            </svg>
-          </div>
-
-          <!-- Zoom Navigation Overlay -->
-          <div class="map-overlay-card map-nav-controls">
-            <button type="button" class="nav-btn" id="btn-zoom-in" title="Zoom In (+)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </button>
-            <button type="button" class="nav-btn" id="btn-zoom-out" title="Zoom Out (-)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </button>
-            <button type="button" class="nav-btn" id="btn-recenter" title="Recenter (R)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
-            </button>
-          </div>
-
-          <!-- Scale Bar -->
-          <div class="map-overlay-card scale-bar-container" id="scale-bar-card">
-            <div class="scale-bar-graphic" id="scale-bar-box" style="width: 70px;"></div>
-            <div class="scale-bar-text" id="scale-bar-label">100 ft</div>
-          </div>
-
-          <!-- Live Cursor Inspector -->
-          <div class="map-overlay-card bottom-center-inspector">
-            <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600;">ELEV:</span>
-            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight: 700; color: var(--accent-sky);" id="hover-elev">—</span>
-            <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600; margin-left: 6px;">SLOPE:</span>
-            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight: 700; color: var(--accent-emerald);" id="hover-slope">—</span>
-          </div>
 
           <!-- Loading Indicator -->
           <div class="loading-overlay" id="loading-overlay">
@@ -1233,7 +1237,7 @@
 
       <!-- Legal Footer -->
       <footer style="background: var(--bg-surface); border-top: 1px solid var(--border-subtle); padding: 5px 14px; font-size: 0.65rem; color: var(--text-muted); display: flex; justify-content: space-between;">
-        <span>Skyhook v1.0 • Shift: Snap to vertices/parcel • Right-Click: Delete Vertex • Esc: Cancel</span>
+        <span>Skyhook v1.0 • P: Area • R: Box • E: Exclusion • L: Line • N: Edit • V: Pan • Shift: Snap • Esc: Cancel</span>
         <span>LiDAR: USGS 3DEP 1m • Aerial: USGS NAIP</span>
       </footer>
 
@@ -1405,6 +1409,7 @@
       btnRedo: document.getElementById('btn-redo'),
       drawLivePill: document.getElementById('draw-live-pill'),
       
+      mapWrapper: document.getElementById('map-wrapper'),
       mapStage: document.getElementById('map-stage'),
       mapLayersContainer: document.getElementById('map-layers-container'),
       imageryCanvas: document.getElementById('imagery-canvas'),
@@ -1464,6 +1469,7 @@
       
       featuresInventoryList: document.getElementById('features-inventory-list'),
       featuresCount: document.getElementById('features-count'),
+      autosaveStatus: document.getElementById('autosave-status'),
       
       // Water Source Tab Elements
       waterSelectType: document.getElementById('water-select-type'),
@@ -2248,6 +2254,12 @@
 
       stage.addEventListener('pointerdown', (e) => {
         if (appState.viewMode === "3d") return;
+        
+        // Prevent pointer capture if interacting with overlays/buttons
+        if (e.target.closest('#drawing-toolbar') || e.target.closest('.map-overlay-card') || e.target.closest('button')) {
+          return;
+        }
+
         const rect = stage.getBoundingClientRect();
         let px = ((e.clientX - rect.left) / rect.width) * 512;
         let py = ((e.clientY - rect.top) / rect.height) * 512;
@@ -2305,7 +2317,20 @@
           appState.drawingPoints = [[px, py]];
           appState.drawingGeoPoints = [[lon, lat]];
         } else {
-          if (appState.drawingPoints.length >= 3 && Math.hypot(px - appState.drawingPoints[0][0], py - appState.drawingPoints[0][1]) < 16) {
+          if (appState.activeTool === 'draw-rectangle' && appState.drawingPoints.length === 1) {
+            // Rectangle 2nd point closes the box
+            const p0 = appState.drawingPoints[0];
+            const p1 = [px, p0[1]];
+            const p2 = [px, py];
+            const p3 = [p0[0], py];
+            const geo0 = appState.drawingGeoPoints[0];
+            const geo1 = pixelToWgs84(p1[0], p1[1], appState.dataset);
+            const geo2 = [lon, lat];
+            const geo3 = pixelToWgs84(p3[0], p3[1], appState.dataset);
+
+            appState.drawingGeoPoints = [geo0, geo1, geo2, geo3];
+            finishDrawingShape();
+          } else if (appState.drawingPoints.length >= 3 && Math.hypot(px - appState.drawingPoints[0][0], py - appState.drawingPoints[0][1]) < 16) {
             finishDrawingShape();
           } else {
             appState.drawingPoints.push([px, py]);
@@ -2395,6 +2420,13 @@
           }
         }
       });
+
+      // Double-click to close polygon or line
+      stage.addEventListener('dblclick', (e) => {
+        if (appState.isDrawing && appState.drawingPoints.length >= 2) {
+          finishDrawingShape();
+        }
+      });
     }
 
     function renderDrawingPreview(currPx, currPy) {
@@ -2431,20 +2463,20 @@
       for (let i = 0; i < pts.length - 1; i++) {
         perim += Math.hypot(pts[i+1][0] - pts[i][0], pts[i+1][1] - pts[i][1]) * (appState.dataset?.dxGroundFeet || 1);
       }
-      pill.textContent = `Perimeter: ${Math.round(perim)} ft | Double-click or click start to close`;
+      pill.textContent = `Perimeter: ${Math.round(perim)} ft | Click start or double-click to finish`;
     }
 
     function finishDrawingShape() {
-      if (appState.drawingGeoPoints.length < 3) {
+      if (appState.drawingGeoPoints.length < (appState.activeTool === 'draw-line' ? 2 : 3)) {
         cancelCurrentDrawing();
         return;
       }
 
       pushHistoryState();
-      const closedGeo = [...appState.drawingGeoPoints, appState.drawingGeoPoints[0]];
       const newId = `feature_${Date.now()}`;
 
       if (appState.activeTool === 'draw-exclusion-poly') {
+        const closedGeo = [...appState.drawingGeoPoints, appState.drawingGeoPoints[0]];
         const excl = {
           id: newId,
           name: `Exclusion ${siteModel.exclusions.length + 1}`,
@@ -2469,6 +2501,7 @@
         siteModel.exclusions.push(excl);
         selectFeature(excl.id, "exclusion");
       } else {
+        const closedGeo = [...appState.drawingGeoPoints, appState.drawingGeoPoints[0]];
         const area = {
           id: newId,
           name: `Zone ${siteModel.areas.length + 1}`,
@@ -2546,8 +2579,10 @@
     function saveToLocalStorage() {
       try {
         localStorage.setItem("skyhook_site_model", JSON.stringify(siteModel));
-        elements.autosaveStatus.textContent = "✓ Saved";
-        setTimeout(() => { elements.autosaveStatus.textContent = "✓ Synced"; }, 1500);
+        if (elements.autosaveStatus) {
+          elements.autosaveStatus.textContent = "✓ Saved";
+          setTimeout(() => { elements.autosaveStatus.textContent = "✓ Synced"; }, 1500);
+        }
       } catch (e) {}
     }
 
@@ -3145,6 +3180,18 @@
         });
       });
 
+      // 3D Texture Mode Selector
+      elements.threeTextureControl.querySelectorAll('.segment-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          elements.threeTextureControl.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          appState.three.textureMode = btn.dataset.tex;
+          if (appState.viewMode === "3d" && appState.dataset) {
+            build3DTerrainMesh(appState.dataset);
+          }
+        });
+      });
+
       // Layer Opacities
       elements.sliderOpacityHillshade.addEventListener('input', (e) => {
         const val = e.target.value;
@@ -3181,14 +3228,33 @@
         }
       });
 
-      // Drawing Tools
+      // Prevent Toolbar events from reaching the map stage
+      elements.drawingToolbar.addEventListener('pointerdown', (e) => e.stopPropagation());
+      elements.drawingToolbar.addEventListener('mousedown', (e) => e.stopPropagation());
+      elements.drawingToolbar.addEventListener('touchstart', (e) => e.stopPropagation());
+
+      // Drawing Tools Binding
       document.querySelectorAll('#drawing-toolbar .tool-btn[data-tool]').forEach(btn => {
-        btn.addEventListener('click', () => setActiveTool(btn.getAttribute('data-tool')));
+        const tool = btn.getAttribute('data-tool');
+        const handleToolSelect = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setActiveTool(tool);
+        };
+        btn.addEventListener('click', handleToolSelect);
+        btn.addEventListener('pointerdown', handleToolSelect);
+      });
+
+      // Prevent Overlay Card events from reaching map stage
+      document.querySelectorAll('.map-overlay-card').forEach(card => {
+        card.addEventListener('pointerdown', (e) => e.stopPropagation());
+        card.addEventListener('mousedown', (e) => e.stopPropagation());
+        card.addEventListener('touchstart', (e) => e.stopPropagation());
       });
 
       // Undo / Redo
-      elements.btnUndo.addEventListener('click', undo);
-      elements.btnRedo.addEventListener('click', redo);
+      elements.btnUndo.addEventListener('click', (e) => { e.stopPropagation(); undo(); });
+      elements.btnRedo.addEventListener('click', (e) => { e.stopPropagation(); redo(); });
 
       window.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
@@ -3200,6 +3266,12 @@
           setActiveTool('pan');
         } else if (e.key.toLowerCase() === 'p') {
           setActiveTool('draw-polygon');
+        } else if (e.key.toLowerCase() === 'r') {
+          setActiveTool('draw-rectangle');
+        } else if (e.key.toLowerCase() === 'e') {
+          setActiveTool('draw-exclusion-poly');
+        } else if (e.key.toLowerCase() === 'l') {
+          setActiveTool('draw-line');
         } else if (e.key.toLowerCase() === 'v') {
           setActiveTool('pan');
         } else if (e.key.toLowerCase() === 'n') {
@@ -3257,6 +3329,14 @@
           renderSiteModel();
         }
       });
+      elements.exclCheckNospray.addEventListener('change', (e) => {
+        const excl = siteModel.exclusions.find(ex => ex.id === appState.selectedFeatureId);
+        if (excl) excl.no_spray = e.target.checked;
+      });
+      elements.exclCheckNotrench.addEventListener('change', (e) => {
+        const excl = siteModel.exclusions.find(ex => ex.id === appState.selectedFeatureId);
+        if (excl) excl.no_trench = e.target.checked;
+      });
 
       // Water Infrastructure Field Changes
       elements.waterSelectType.addEventListener('change', (e) => {
@@ -3277,9 +3357,21 @@
         validateSiteModel();
         saveToLocalStorage();
       });
+      elements.waterSelectLinesize.addEventListener('change', (e) => {
+        siteModel.water_source.service_line.size_in = parseFloat(e.target.value) || 1.0;
+        saveToLocalStorage();
+      });
+      elements.waterSelectMaterial.addEventListener('change', (e) => {
+        siteModel.water_source.service_line.material = e.target.value;
+        saveToLocalStorage();
+      });
       elements.btnPlaceWaterSource.addEventListener('click', () => {
         setActiveTool('place-water');
         alert("Click on the map at the well head or water meter location to place pin.");
+      });
+      elements.ctrlInputStations.addEventListener('input', (e) => {
+        siteModel.controller.max_stations = parseInt(e.target.value, 10) || 8;
+        saveToLocalStorage();
       });
       elements.btnPlaceController.addEventListener('click', () => {
         setActiveTool('place-controller');
