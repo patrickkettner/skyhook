@@ -172,6 +172,14 @@
         "schedule_levers": { "type": "array" }
       }
     },
+    "maintenance": {
+      "type": "object",
+      "properties": {
+        "core_aeration": { "type": "boolean", "default": true },
+        "dethatching": { "type": "boolean", "default": true },
+        "tillage_depth_in": { "type": "number", "default": 3.5 }
+      }
+    },
     "obstacles_auto": {
       "type": "array",
       "items": { "type": "object" }
